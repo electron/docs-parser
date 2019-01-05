@@ -8,6 +8,7 @@ import {
   findContentAfterList,
   safelyJoinTokens,
   HeadingContent,
+  extractReturnType,
 } from './markdown-helpers';
 import {
   MethodDocumentationBlock,
@@ -15,14 +16,16 @@ import {
   EventDocumentationBlock,
 } from './ParsedDocumentation';
 
-export const _headingToMethodBlock = (heading: HeadingContent | null) => {
+export const _headingToMethodBlock = (
+  heading: HeadingContent | null,
+): MethodDocumentationBlock | null => {
   if (!heading) return null;
 
-  const methodStringMatch = /`(?:.+\.)?(.+?)(\(.*?\))`/g.exec(heading.heading)!;
-  // TODO: Remove
-  console.log(heading.heading);
-  expect(methodStringMatch).to.not.equal(
-    null,
+  const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`/g;
+  const methodStringMatch = methodStringRegexp.exec(heading.heading)!;
+  methodStringRegexp.lastIndex = -1;
+  expect(heading.heading).to.match(
+    methodStringRegexp,
     'each method should have a code blocked method name',
   );
   const [, methodString, methodSignature] = methodStringMatch;
@@ -30,9 +33,6 @@ export const _headingToMethodBlock = (heading: HeadingContent | null) => {
   let parameters: MethodDocumentationBlock['parameters'] = [];
   if (methodSignature !== '()') {
     // If we have parameters we need to find the list of typed keys
-    if (methodString === 'onHeadersReceived') {
-      (global as any).__debug = true;
-    }
     const list = findNextList(heading.content)!;
     expect(list).to.not.equal(
       null,
@@ -44,14 +44,18 @@ export const _headingToMethodBlock = (heading: HeadingContent | null) => {
       required: typedKey.required,
       ...typedKey.type,
     }));
-    (global as any).__debug = false;
   }
+
+  const { parsedDescription, parsedReturnType } = extractReturnType(
+    safelyJoinTokens(findContentAfterList(heading.content, true)),
+  );
 
   return {
     name: methodString,
     signature: methodSignature,
-    description: safelyJoinTokens(findContentAfterList(heading.content)),
+    description: parsedDescription,
     parameters,
+    returns: parsedReturnType,
   };
 };
 

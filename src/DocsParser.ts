@@ -152,7 +152,7 @@ export class DocsParser {
           ...container,
           type: 'Module',
           process: null as any,
-          methods: [],
+          methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
           properties: [],
           events: [],
         });

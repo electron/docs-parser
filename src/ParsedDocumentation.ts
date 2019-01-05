@@ -1,4 +1,9 @@
-type DetailedType =
+export type PossibleStringValue = {
+  value: string;
+  description: string;
+};
+
+export type DetailedType =
   | {
       type: TypeInformation[];
     }
@@ -9,6 +14,10 @@ type DetailedType =
   | {
       type: 'Object';
       properties: PropertyDocumentationBlock[];
+    }
+  | {
+      type: 'String';
+      possibleValues: PossibleStringValue[] | null;
     }
   | {
       type: string;
@@ -24,13 +33,23 @@ export type MethodParameterDocumentation = {
   required: boolean;
 } & TypeInformation;
 
+export type EventParameterDocumentation = {
+  name: string;
+  description: string;
+} & TypeInformation;
+
 export type MethodDocumentationBlock = {
   name: string;
   signature: string;
   description: string;
   parameters: MethodParameterDocumentation[];
+  returns: TypeInformation | null;
 };
-export type EventDocumentationBlock = {};
+export type EventDocumentationBlock = {
+  name: string;
+  description: string;
+  parameters: EventParameterDocumentation[];
+};
 export type PropertyDocumentationBlock = {
   name: string;
   description: string;

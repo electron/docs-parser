@@ -4,6 +4,7 @@ import {
   TypeInformation,
   PropertyDocumentationBlock,
   MethodParameterDocumentation,
+  PossibleStringValue,
 } from './ParsedDocumentation';
 
 export type MarkdownTokens = ReturnType<MarkdownIt['parse']>;
@@ -33,9 +34,12 @@ export const findFirstHeading = (tokens: MarkdownTokens) => {
   return tokens[open + 1];
 };
 
-export const findContentAfterList = (tokens: MarkdownTokens) => {
-  const start = tokens.findIndex(t => t.type === 'bullet_list_close');
-  if (start === -1) return [];
+export const findContentAfterList = (tokens: MarkdownTokens, returnAllOnNoList = false) => {
+  let start = tokens.findIndex(t => t.type === 'bullet_list_close');
+  if (start === -1) {
+    if (!returnAllOnNoList) return [];
+    start = tokens.findIndex(t => t.type === 'heading_close');
+  }
   const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
@@ -145,11 +149,65 @@ export const rawTypeToTypeInformation = (
           }))
         : [],
     };
+  } else if (typeString === 'String') {
+    return {
+      collection,
+      type: 'String',
+      possibleValues: subTypedKeys
+        ? subTypedKeys.map<PossibleStringValue>(typedKey => ({
+            value: typedKey.key,
+            description: typedKey.description,
+          }))
+        : null,
+    };
   }
 
   return {
     collection,
     type: typeString,
+  };
+};
+
+export const extractReturnType = (
+  rawDescription: string,
+): {
+  parsedDescription: string;
+  parsedReturnType: TypeInformation | null;
+} => {
+  const description = rawDescription.trim();
+  if (!description.startsWith('Returns `')) {
+    return {
+      parsedDescription: description,
+      parsedReturnType: null,
+    };
+  }
+
+  const returnsWithNewLineMatch = /Returns `([^`]+?)`(\n|$)/.exec(description);
+  const returnsWithHyphenMatch = /Returns `([^`]+?)` - /.exec(description);
+  const returnsWithContinousSentence = /Returns `([^`]+?)` /.exec(description);
+
+  let parsedDescription: string = '';
+  let rawReturnType = '' as any;
+
+  if (returnsWithNewLineMatch) {
+    rawReturnType = returnsWithNewLineMatch[1];
+    parsedDescription = description.replace(returnsWithNewLineMatch[0], '');
+  } else if (returnsWithHyphenMatch) {
+    rawReturnType = returnsWithHyphenMatch[1];
+    parsedDescription = description.replace(returnsWithHyphenMatch[0], '');
+  } else if (returnsWithContinousSentence) {
+    rawReturnType = returnsWithContinousSentence[1];
+    parsedDescription = description.replace(returnsWithContinousSentence[0], '');
+  } else {
+    return {
+      parsedDescription: description,
+      parsedReturnType: null,
+    };
+  }
+
+  return {
+    parsedDescription,
+    parsedReturnType: rawTypeToTypeInformation(rawReturnType, null),
   };
 };
 
@@ -279,7 +337,6 @@ const getNestedList = (rawTokens: MarkdownTokens): List => {
     } else {
       if (current) current.tokens.push(token);
     }
-    // if ((global as any).__debug) console.log(token.type, currentDepth, !!current, currentList);
   }
 
   return rootList;
@@ -289,6 +346,22 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
   const keys: TypedKey[] = [];
 
   for (const item of list.items) {
+    // If the current list would fail checks, but it has a nested list, assume that the nested list is the content we want
+    // E.g.
+    // * `foo` - String
+    //   * On windows these keys
+    //      * `option1`
+    //      * `option2`
+    if (
+      (item.tokens.length !== 3 ||
+        !item.tokens[1].children ||
+        item.tokens[1].children.length < 1 ||
+        item.tokens[1].children[0].type !== 'code_inline') &&
+      item.nestedList
+    ) {
+      keys.push(...convertNestedListToTypedKeys(item.nestedList));
+      continue;
+    }
     // Anything other than 3 items and the logic below is making a bad assumption, let's fail violently
     expect(item.tokens).to.have.lengthOf(
       3,
@@ -299,16 +372,19 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     const targetToken = item.tokens[1];
     // Need at least a key and a type
     expect(targetToken.children.length).to.be.at.least(
-      2,
-      'Expected token token to have at least 2 children for typed key extraction',
+      1,
+      'Expected token token to have at least 1 child for typed key extraction',
     );
     const keyToken = targetToken.children[0];
     expect(keyToken.type).to.equal('code_inline', 'Expected key token to be an inline code block');
     const typeAndDescriptionTokens = targetToken.children.slice(1);
-
     const joinedContent = safelyJoinTokens(typeAndDescriptionTokens);
 
-    const rawType = joinedContent.split('-')[0];
+    let rawType = 'String';
+    if (typeAndDescriptionTokens.length !== 0) {
+      rawType = joinedContent.split('-')[0];
+    }
+
     const rawDescription = joinedContent.substr(rawType.length);
 
     expect(rawDescription).not.to.match(
