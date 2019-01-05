@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "tslint.enable": false,
+  "typescript.preferences.quoteStyle": "single",
+  "search.exclude": {
+    "**/dist": true
+  }
+}
