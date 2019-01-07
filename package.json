@@ -1,6 +1,6 @@
 {
   "name": "electron-docs-parser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Parse Electron documentation into a machine readable JSON file",
   "main": "dist/index.js",
   "author": "Samuel Attard",
