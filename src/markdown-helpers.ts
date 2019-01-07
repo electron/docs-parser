@@ -125,6 +125,7 @@ export const findContentInsideHeader = (
 
 export const rawTypeToTypeInformation = (
   rawType: string,
+  relatedDescription: string,
   subTypedKeys: TypedKey[] | null,
 ): TypeInformation => {
   let collection = false;
@@ -141,7 +142,7 @@ export const rawTypeToTypeInformation = (
       collection,
       type: multiTypes
         .map(multiType => multiType.trim())
-        .map(multiType => rawTypeToTypeInformation(multiType, subTypedKeys)),
+        .map(multiType => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
     };
   }
 
@@ -181,6 +182,8 @@ export const rawTypeToTypeInformation = (
             value: typedKey.key,
             description: typedKey.description,
           }))
+        : relatedDescription
+        ? extractStringEnum(relatedDescription)
         : null,
     };
   }
@@ -190,7 +193,7 @@ export const rawTypeToTypeInformation = (
     const genericTypeString = genericTypeMatch[1];
     const innerTypes = genericTypeMatch[2]
       .split(',')
-      .map(t => rawTypeToTypeInformation(t.trim(), null));
+      .map(t => rawTypeToTypeInformation(t.trim(), '', null));
 
     // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
     // parameter types and the Nth innerType is the return type
@@ -219,6 +222,30 @@ export enum StripReturnTypeBehavior {
   STRIP,
   DO_NOT_STRIP,
 }
+
+export const extractStringEnum = (description: string): PossibleStringValue[] | null => {
+  const possibleValues: PossibleStringValue[] = [];
+
+  const inlineValuesPattern = /(?:can be|values include) ((?:(?:`[a-zA-Z-]+`)(?:, ))*(?:`[a-zA-Z-]+`)?(?: (?:or|and) `[a-zA-Z-]+`)?)/i;
+  const inlineMatch = inlineValuesPattern.exec(description);
+  if (inlineMatch) {
+    const valueString = inlineMatch[1];
+    const valuePattern = /`([a-zA-Z-]+)`/g;
+    let value = valuePattern.exec(valueString);
+
+    while (value) {
+      possibleValues.push({
+        value: value[1],
+        description: '',
+      });
+      value = valuePattern.exec(valueString);
+    }
+
+    return possibleValues.length === 0 ? null : possibleValues;
+  }
+
+  return null;
+};
 
 export const extractReturnType = (
   rawDescription: string,
@@ -266,7 +293,7 @@ export const extractReturnType = (
 
   return {
     parsedDescription,
-    parsedReturnType: rawTypeToTypeInformation(rawReturnType, null),
+    parsedReturnType: rawTypeToTypeInformation(rawReturnType, parsedDescription, null),
   };
 };
 
@@ -473,7 +500,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     const isRootOptional = / ?\(optional\) ?/i.test(rawType);
     const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '').replace(/_.+?_/g, '');
     const subTypedKeys = item.nestedList ? convertNestedListToTypedKeys(item.nestedList) : null;
-    const type = rawTypeToTypeInformation(cleanedType.trim(), subTypedKeys);
+    const type = rawTypeToTypeInformation(cleanedType.trim(), rawDescription, subTypedKeys);
 
     keys.push({
       type,
