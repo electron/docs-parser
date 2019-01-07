@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
 import * as ora from 'ora';
