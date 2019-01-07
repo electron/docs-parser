@@ -10,6 +10,9 @@
     "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test": "jest"
   },
+  "bin": {
+    "electron-docs-parser": "./dist/bin.js"
+  },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/fs-extra": "^5.0.4",
