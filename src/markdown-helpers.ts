@@ -273,6 +273,7 @@ export const extractReturnType = (
 // NOTE: This method obliterates code fences
 export const safelyJoinTokens = (tokens: MarkdownTokens) => {
   let joinedContent = '';
+  let listLevel = -1;
   for (const tokenToCheck of tokens) {
     if (tokenToCheck.children !== null && tokenToCheck.type === 'inline') {
       joinedContent += safelyJoinTokens(tokenToCheck.children);
@@ -336,16 +337,34 @@ export const safelyJoinTokens = (tokens: MarkdownTokens) => {
         joinedContent += '\n\n';
         break;
       case 'list_item_open':
+        // Provide correct indentation
+        for (let i = 0; i < listLevel; i += 1) {
+          joinedContent += '  ';
+        }
         joinedContent += '* ';
         break;
       case 'list_item_close': {
-        if (joinedContent.endsWith('\n'))
+        // On close of a list item we also closed a paragraph so let's remove one of the trailing new lines
+        if (joinedContent.endsWith('\n')) {
           joinedContent = joinedContent.slice(0, joinedContent.length - 1);
+        }
         break;
       }
-      case 'paragraph_open':
       case 'bullet_list_open':
+        // If we are opening a new list inside a list we need to strip a new line from the last close paragraph
+        if (listLevel > -1) {
+          joinedContent = joinedContent.slice(0, joinedContent.length - 1);
+        }
+        listLevel += 1;
+        break;
       case 'bullet_list_close':
+        // On close of a nested list, add an extra new line
+        if (listLevel > -1) {
+          joinedContent += '\n';
+        }
+        listLevel -= 1;
+        break;
+      case 'paragraph_open':
       case 'blockquote_close':
       case 'fence':
         break;

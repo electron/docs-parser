@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for basic-paragraph 1`] = `"This is just a basic paragraph.  It has multiple sentences and natural soft breaks."`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for blockquotes 1`] = `
+"This is a paragraph
+
+> and here is a quote
+
+and another paragraph"
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for list-after-paragraph 1`] = `
+"This is a paragraph
+
+* this
+* is
+* a
+* list"
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for lists 1`] = `
+"* bar
+* thing
+* stuff
+* my tab key does not work and I am sad"
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for multiple-paragraphs 1`] = `
+"This is paragraph 1, it has a few sentences.  Like this one, and a soft break.
+
+And now this is a second paragraph, and it's also quite short with a soft break."
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for nested-list 1`] = `
+"* top level
+  * second level
+* back to top
+  * back to second
+  * still at second
+    * now at third"
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-fence-removal 1`] = `
+"This fence should be removed
+
+Hey"
+`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-inline-code 1`] = `"This is a \`inline code\` block that is \`code\` tagged."`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;
+
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-text-markers 1`] = `"Heya, this is **bold** and _italic_ and *italic* and ~~struck through~~"`;

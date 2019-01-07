@@ -100,7 +100,6 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
   expect(eventName).to.not.equal('', 'should have a non-zero-length event name');
 
   const description = safelyJoinTokens(findContentAfterList(heading.content, true));
-  // console.log(description);
 
   let parameters: EventDocumentationBlock['parameters'] = [];
   if (
