@@ -9,6 +9,8 @@ import {
   safelyJoinTokens,
   HeadingContent,
   extractReturnType,
+  findContentAfterHeadingClose,
+  StripReturnTypeBehavior,
 } from './markdown-helpers';
 import {
   MethodDocumentationBlock,
@@ -59,26 +61,87 @@ export const _headingToMethodBlock = (
   };
 };
 
+export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocumentationBlock => {
+  const propertyStringRegexp = /`(?:.+\.)?(.+?)`/g;
+  const propertyStringMatch = propertyStringRegexp.exec(heading.heading)!;
+  propertyStringRegexp.lastIndex = -1;
+  expect(heading.heading).to.match(
+    propertyStringRegexp,
+    'each property should have a code blocked property name',
+  );
+  const [, propertyString] = propertyStringMatch;
+
+  const { parsedDescription, parsedReturnType } = extractReturnType(
+    safelyJoinTokens(findContentAfterHeadingClose(heading.content)),
+    StripReturnTypeBehavior.DO_NOT_STRIP,
+    'An?',
+  );
+
+  expect(parsedReturnType).to.not.equal(
+    null,
+    `Property ${heading.heading} should have a declared type but it does not`,
+  );
+
+  return {
+    name: propertyString,
+    description: parsedDescription,
+    required: true,
+    ...parsedReturnType!,
+  };
+};
+
+export const _headingToEventBlock = (heading: HeadingContent): EventDocumentationBlock => {
+  const eventNameRegexp = /^Event: '(.+)'/g;
+  const eventNameMatch = eventNameRegexp.exec(heading.heading)!;
+  eventNameRegexp.lastIndex = -1;
+  expect(heading.heading).to.match(eventNameRegexp, 'each event should have a quoted event name');
+  const [, eventName] = eventNameMatch;
+
+  expect(eventName).to.not.equal('', 'should have a non-zero-length event name');
+
+  const description = safelyJoinTokens(findContentAfterList(heading.content, true));
+  // console.log(description);
+
+  let parameters: EventDocumentationBlock['parameters'] = [];
+  if (
+    safelyJoinTokens(findContentAfterHeadingClose(heading.content))
+      .trim()
+      .startsWith('Returns:')
+  ) {
+    const list = findNextList(heading.content);
+    if (list) {
+      const typedKeys = convertListToTypedKeys(list);
+      parameters = typedKeys.map(typedKey => ({
+        name: typedKey.key,
+        description: typedKey.description,
+        ...typedKey.type,
+      }));
+    }
+  }
+
+  return {
+    name: eventName,
+    description,
+    parameters,
+  };
+};
+
 export const parseMethodBlocks = (tokens: MarkdownTokens | null): MethodDocumentationBlock[] => {
   if (!tokens) return [];
 
-  const blocks: MethodDocumentationBlock[] = [];
-
-  for (const methodHeading of headingsAndContent(tokens)) {
-    blocks.push(_headingToMethodBlock(methodHeading)!);
-  }
-
-  return blocks;
+  return headingsAndContent(tokens).map(heading => _headingToMethodBlock(heading)!);
 };
 
 export const parsePropertyBlocks = (
   tokens: MarkdownTokens | null,
 ): PropertyDocumentationBlock[] => {
   if (!tokens) return [];
-  return [];
+
+  return headingsAndContent(tokens).map(_headingToPropertyBlock);
 };
 
 export const parseEventBlocks = (tokens: MarkdownTokens | null): EventDocumentationBlock[] => {
   if (!tokens) return [];
-  return [];
+
+  return headingsAndContent(tokens).map(_headingToEventBlock);
 };

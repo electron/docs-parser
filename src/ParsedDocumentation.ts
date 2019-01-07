@@ -3,13 +3,14 @@ export type PossibleStringValue = {
   description: string;
 };
 
-export type DetailedType =
+export type DetailedType = (
   | {
       type: TypeInformation[];
     }
   | {
       type: 'Function';
       parameters: MethodParameterDocumentation[];
+      returns: TypeInformation | null;
     }
   | {
       type: 'Object';
@@ -21,7 +22,9 @@ export type DetailedType =
     }
   | {
       type: string;
-    };
+    }) & {
+  innerTypes?: TypeInformation[];
+};
 
 export type TypeInformation = {
   collection: boolean;
@@ -38,21 +41,20 @@ export type EventParameterDocumentation = {
   description: string;
 } & TypeInformation;
 
-export type MethodDocumentationBlock = {
+export type DocumentationBlock = {
   name: string;
-  signature: string;
   description: string;
+};
+
+export type MethodDocumentationBlock = DocumentationBlock & {
+  signature: string;
   parameters: MethodParameterDocumentation[];
   returns: TypeInformation | null;
 };
-export type EventDocumentationBlock = {
-  name: string;
-  description: string;
+export type EventDocumentationBlock = DocumentationBlock & {
   parameters: EventParameterDocumentation[];
 };
-export type PropertyDocumentationBlock = {
-  name: string;
-  description: string;
+export type PropertyDocumentationBlock = DocumentationBlock & {
   required: boolean;
 } & TypeInformation;
 

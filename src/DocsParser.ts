@@ -24,7 +24,12 @@ import {
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
-import { parseMethodBlocks, _headingToMethodBlock } from './block-parsers';
+import {
+  parseMethodBlocks,
+  _headingToMethodBlock,
+  parsePropertyBlocks,
+  parseEventBlocks,
+} from './block-parsers';
 
 export class DocsParser {
   constructor(
@@ -137,13 +142,22 @@ export class DocsParser {
                 parameters: constructorMethod.parameters,
               }
             : null,
+          // ### Static Methods
           staticMethods: parseMethodBlocks(findContentInsideHeader(tokens, 'Static Methods', 3)),
-          staticProperties: [],
+          // ### Static Properties
+          staticProperties: parsePropertyBlocks(
+            findContentInsideHeader(tokens, 'Static Properties', 3),
+          ),
+          // ### Instance Methods
           instanceMethods: parseMethodBlocks(
             findContentInsideHeader(tokens, 'Instance Methods', 3),
           ),
-          instanceProperties: [],
-          instanceEvents: [],
+          // ### Instance Properties
+          instanceProperties: parsePropertyBlocks(
+            findContentInsideHeader(tokens, 'Instance Properties', 3),
+          ),
+          // ### Instance Events
+          instanceEvents: parseEventBlocks(findContentInsideHeader(tokens, 'Instance Events', 3)),
           instanceName,
         });
       } else {
@@ -152,9 +166,12 @@ export class DocsParser {
           ...container,
           type: 'Module',
           process: null as any,
+          // ## Methods
           methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
-          properties: [],
-          events: [],
+          // ## Properties
+          properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
+          // ## Events
+          events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
         });
       }
     }

@@ -35,11 +35,33 @@ export const findFirstHeading = (tokens: MarkdownTokens) => {
 };
 
 export const findContentAfterList = (tokens: MarkdownTokens, returnAllOnNoList = false) => {
-  let start = tokens.findIndex(t => t.type === 'bullet_list_close');
+  let start = -1;
+  let opened = 0;
+  let foundBulletListOpen = false;
+  for (const [index, token] of tokens.entries()) {
+    if (token.type === 'bullet_list_open') {
+      opened += 1;
+      foundBulletListOpen = true;
+    }
+    if (token.type === 'bullet_list_close') {
+      opened -= 1;
+    }
+    if (opened === 0 && foundBulletListOpen) {
+      start = index;
+      break;
+    }
+  }
   if (start === -1) {
     if (!returnAllOnNoList) return [];
     start = tokens.findIndex(t => t.type === 'heading_close');
   }
+  const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
+  if (end === -1) return tokens.slice(start + 1);
+  return tokens.slice(start + 1, end);
+};
+
+export const findContentAfterHeadingClose = (tokens: MarkdownTokens) => {
+  const start = tokens.findIndex(t => t.type === 'heading_close');
   const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
@@ -135,6 +157,7 @@ export const rawTypeToTypeInformation = (
             ...typedKey.type,
           }))
         : [],
+      returns: null,
     };
   } else if (typeString === 'Object') {
     return {
@@ -162,42 +185,78 @@ export const rawTypeToTypeInformation = (
     };
   }
 
+  const genericTypeMatch = typeString.match(/^(.+)<(.+)>$/);
+  if (genericTypeMatch) {
+    const genericTypeString = genericTypeMatch[1];
+    const innerTypes = genericTypeMatch[2]
+      .split(',')
+      .map(t => rawTypeToTypeInformation(t.trim(), null));
+
+    // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
+    // parameter types and the Nth innerType is the return type
+    if (genericTypeString === 'Function') {
+      return {
+        collection,
+        type: 'Function',
+        parameters: innerTypes.slice(0, innerTypes.length - 2),
+        returns: innerTypes[innerTypes.length - 1],
+      };
+    }
+    return {
+      collection,
+      type: genericTypeString,
+      innerTypes: innerTypes,
+    };
+  }
+
   return {
     collection,
     type: typeString,
   };
 };
 
+export enum StripReturnTypeBehavior {
+  STRIP,
+  DO_NOT_STRIP,
+}
+
 export const extractReturnType = (
   rawDescription: string,
+  stripTypeFromDescription = StripReturnTypeBehavior.STRIP,
+  prefix = 'Returns',
 ): {
   parsedDescription: string;
   parsedReturnType: TypeInformation | null;
 } => {
   const description = rawDescription.trim();
-  if (!description.startsWith('Returns `')) {
+  if (!new RegExp(`^${prefix} `, 'igm').test(description.trim())) {
     return {
       parsedDescription: description,
       parsedReturnType: null,
     };
   }
 
-  const returnsWithNewLineMatch = /Returns `([^`]+?)`(\n|$)/.exec(description);
-  const returnsWithHyphenMatch = /Returns `([^`]+?)` - /.exec(description);
-  const returnsWithContinousSentence = /Returns `([^`]+?)` /.exec(description);
+  const returnsWithNewLineMatch = description.match(
+    new RegExp(`${prefix} \`([^\`]+?)\`(\. |\n|$)`),
+  );
+  const returnsWithHyphenMatch = description.match(new RegExp(`${prefix} \`([^\`]+?)\` - `));
+  const returnsWithContinousSentence = description.match(new RegExp(`${prefix} \`([^\`]+?)\` `));
 
-  let parsedDescription: string = '';
-  let rawReturnType = '' as any;
+  let parsedDescription = description;
+  let rawReturnType: string;
 
   if (returnsWithNewLineMatch) {
     rawReturnType = returnsWithNewLineMatch[1];
-    parsedDescription = description.replace(returnsWithNewLineMatch[0], '');
+    if (stripTypeFromDescription === StripReturnTypeBehavior.STRIP)
+      parsedDescription = description.replace(returnsWithNewLineMatch[0], '');
   } else if (returnsWithHyphenMatch) {
     rawReturnType = returnsWithHyphenMatch[1];
-    parsedDescription = description.replace(returnsWithHyphenMatch[0], '');
+    if (stripTypeFromDescription === StripReturnTypeBehavior.STRIP)
+      parsedDescription = description.replace(returnsWithHyphenMatch[0], '');
   } else if (returnsWithContinousSentence) {
     rawReturnType = returnsWithContinousSentence[1];
-    parsedDescription = description.replace(returnsWithContinousSentence[0], '');
+    if (stripTypeFromDescription === StripReturnTypeBehavior.STRIP)
+      parsedDescription = description.replace(returnsWithContinousSentence[0], '');
   } else {
     return {
       parsedDescription: description,
@@ -393,7 +452,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     );
 
     const isRootOptional = / ?\(optional\) ?/i.test(rawType);
-    const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '');
+    const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '').replace(/_.+?_/g, '');
     const subTypedKeys = item.nestedList ? convertNestedListToTypedKeys(item.nestedList) : null;
     const type = rawTypeToTypeInformation(cleanedType.trim(), subTypedKeys);
 
