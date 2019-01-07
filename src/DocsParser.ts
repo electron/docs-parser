@@ -211,7 +211,6 @@ export class DocsParser {
   public async parse(): Promise<ParsedDocumentationResult> {
     const docs = new ParsedDocumentation();
 
-    console.time('gen api');
     for (const apiFile of this.apiFiles) {
       try {
         docs.addModuleOrClass(...(await this.parseAPIFile(apiFile)));
@@ -219,9 +218,7 @@ export class DocsParser {
         throw extendError(`An error occurred while processing: "${apiFile}"`, err);
       }
     }
-    console.timeEnd('gen api');
 
-    console.time('gen structs');
     for (const structureFile of this.structureFiles) {
       try {
         docs.addStructure(await this.parseStructure(structureFile));
@@ -229,7 +226,6 @@ export class DocsParser {
         throw extendError(`An error occurred while processing: "${structureFile}"`, err);
       }
     }
-    console.timeEnd('gen structs');
 
     return docs.getJSON();
   }
