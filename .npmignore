@@ -3,3 +3,8 @@ src
 .prettierrc.json
 api.json
 tsconfig.json
+dist/**/__tests__
+.circleci
+jest*
+.releaserc.json
+electron-api.json
