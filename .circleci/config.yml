@@ -27,8 +27,7 @@ jobs:
             - v1-dependencies-
       - run: yarn install
       - run: yarn build
-      # TODO: Enable Semantic Release
-      # - run: npx semantic-release
+      - run: npx semantic-release
 workflows:
   version: 2
   test_and_release:
