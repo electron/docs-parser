@@ -117,6 +117,7 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
         name: typedKey.key,
         description: typedKey.description,
         ...typedKey.type,
+        required: true,
       }));
     }
   }

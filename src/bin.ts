@@ -80,6 +80,7 @@ fs.mkdirp(resolvedOutDir).then(() =>
       ),
     )
     .catch(err => {
+      runner.fail();
       console.error(err);
       process.exit(1);
     }),

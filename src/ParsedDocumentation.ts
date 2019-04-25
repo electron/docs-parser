@@ -1,64 +1,61 @@
-export type PossibleStringValue = {
+export declare type PossibleStringValue = {
   value: string;
   description: string;
 };
-
-export type DetailedType = (
+export declare type DetailedStringType = {
+  type: 'String';
+  possibleValues: PossibleStringValue[] | null;
+};
+export declare type DetailedObjectType = {
+  type: 'Object';
+  properties: PropertyDocumentationBlock[];
+};
+export declare type DetailedFunctionType = {
+  type: 'Function';
+  parameters: MethodParameterDocumentation[];
+  returns: TypeInformation | null;
+};
+export declare type DetailedType = (
   | {
       type: TypeInformation[];
     }
-  | {
-      type: 'Function';
-      parameters: MethodParameterDocumentation[];
-      returns: TypeInformation | null;
-    }
-  | {
-      type: 'Object';
-      properties: PropertyDocumentationBlock[];
-    }
-  | {
-      type: 'String';
-      possibleValues: PossibleStringValue[] | null;
-    }
+  | DetailedFunctionType
+  | DetailedObjectType
+  | DetailedStringType
   | {
       type: string;
     }) & {
   innerTypes?: TypeInformation[];
 };
-
-export type TypeInformation = {
+export declare type TypeInformation = {
   collection: boolean;
 } & DetailedType;
-
-export type MethodParameterDocumentation = {
+export declare type MethodParameterDocumentation = {
   name: string;
   description: string;
   required: boolean;
 } & TypeInformation;
-
-export type EventParameterDocumentation = {
+export declare type EventParameterDocumentation = {
   name: string;
   description: string;
+  required: boolean;
 } & TypeInformation;
-
-export type DocumentationBlock = {
+export declare type DocumentationBlock = {
   name: string;
   description: string;
 };
-
-export type MethodDocumentationBlock = DocumentationBlock & {
+export declare type MethodDocumentationBlock = DocumentationBlock & {
   signature: string;
   parameters: MethodParameterDocumentation[];
   returns: TypeInformation | null;
 };
-export type EventDocumentationBlock = DocumentationBlock & {
+export declare type EventDocumentationBlock = DocumentationBlock & {
   parameters: EventParameterDocumentation[];
 };
-export type PropertyDocumentationBlock = DocumentationBlock & {
+export declare type PropertyDocumentationBlock = DocumentationBlock & {
   required: boolean;
 } & TypeInformation;
-
-export type BaseDocumentationContainer = {
+export declare type BaseDocumentationContainer = {
   name: string;
   extends?: string;
   description: string;
@@ -67,8 +64,7 @@ export type BaseDocumentationContainer = {
   websiteUrl: string;
   repoUrl: string;
 };
-
-export type ModuleDocumentationContainer = {
+export declare type ModuleDocumentationContainer = {
   type: 'Module';
   process: {
     main: boolean;
@@ -77,15 +73,27 @@ export type ModuleDocumentationContainer = {
   methods: MethodDocumentationBlock[];
   events: EventDocumentationBlock[];
   properties: PropertyDocumentationBlock[];
+  constructorMethod?: undefined;
+  instanceMethods?: undefined;
+  instanceEvents?: undefined;
+  instanceProperties?: undefined;
+  staticProperties?: undefined;
+  staticMethods?: undefined;
 } & BaseDocumentationContainer;
-
-export type StructureDocumentationContainer = {
+export declare type StructureDocumentationContainer = {
   type: 'Structure';
   properties: PropertyDocumentationBlock[];
+  constructorMethod?: undefined;
+  methods?: undefined;
+  events?: undefined;
+  instanceMethods?: undefined;
+  instanceEvents?: undefined;
+  instanceProperties?: undefined;
+  staticProperties?: undefined;
+  staticMethods?: undefined;
   extends?: string;
 } & BaseDocumentationContainer;
-
-export type ClassDocumentationContainer = {
+export declare type ClassDocumentationContainer = {
   type: 'Class';
   process: {
     main: boolean;
@@ -98,12 +106,31 @@ export type ClassDocumentationContainer = {
   instanceMethods: MethodDocumentationBlock[];
   instanceEvents: EventDocumentationBlock[];
   instanceProperties: PropertyDocumentationBlock[];
+  methods?: undefined;
+  events?: undefined;
+  properties?: undefined;
 } & BaseDocumentationContainer;
-
-export type ParsedDocumentationResult = (
+export declare type ElementDocumentationContainer = {
+  type: 'Element';
+  process: {
+    main: boolean;
+    renderer: boolean;
+  };
+  constructorMethod?: undefined;
+  methods: MethodDocumentationBlock[];
+  events: EventDocumentationBlock[];
+  properties: PropertyDocumentationBlock[];
+  instanceMethods?: undefined;
+  instanceEvents?: undefined;
+  instanceProperties?: undefined;
+  staticProperties?: undefined;
+  staticMethods?: undefined;
+} & BaseDocumentationContainer;
+export declare type ParsedDocumentationResult = (
   | ModuleDocumentationContainer
   | ClassDocumentationContainer
-  | StructureDocumentationContainer)[];
+  | StructureDocumentationContainer
+  | ElementDocumentationContainer)[];
 
 export class ParsedDocumentation {
   private repr: ParsedDocumentationResult = [];
@@ -112,8 +139,11 @@ export class ParsedDocumentation {
     this.repr.push(struct);
   }
 
-  public addModuleOrClass(
-    ...apiContainers: (ModuleDocumentationContainer | ClassDocumentationContainer)[]
+  public addModuleOrClassOrElement(
+    ...apiContainers: (
+      | ModuleDocumentationContainer
+      | ClassDocumentationContainer
+      | ElementDocumentationContainer)[]
   ) {
     this.repr.push(...apiContainers);
   }

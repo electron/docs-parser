@@ -36,3 +36,5 @@ async function getAllMarkdownFiles(inDir: string) {
 
   return allMarkdownFiles;
 }
+
+export * from './ParsedDocumentation';

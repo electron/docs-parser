@@ -12,6 +12,7 @@ import {
   BaseDocumentationContainer,
   ModuleDocumentationContainer,
   ClassDocumentationContainer,
+  ElementDocumentationContainer,
 } from './ParsedDocumentation';
 import {
   findNextList,
@@ -112,8 +113,13 @@ export class DocsParser {
 
   private async parseAPIFile(
     filePath: string,
-  ): Promise<(ModuleDocumentationContainer | ClassDocumentationContainer)[]> {
-    const parsed: (ModuleDocumentationContainer | ClassDocumentationContainer)[] = [];
+  ): Promise<
+    (ModuleDocumentationContainer | ClassDocumentationContainer | ElementDocumentationContainer)[]
+  > {
+    const parsed: (
+      | ModuleDocumentationContainer
+      | ClassDocumentationContainer
+      | ElementDocumentationContainer)[] = [];
     const contents = await fs.readFile(filePath, 'utf8');
     const md = new MarkdownIt();
 
@@ -121,6 +127,20 @@ export class DocsParser {
 
     const baseInfos = await this.parseBaseContainers(filePath, contents, allTokens);
     for (const { container, tokens, isClass } of baseInfos) {
+      let isElement = false;
+      if (container.name.endsWith('` Tag')) {
+        expect(container.name).to.match(
+          /<.+?>/g,
+          'element documentation header should contain the HTML tag',
+        );
+        container.name = `${/<(.+?)>/g.exec(container.name)![1]}Tag`;
+        container.extends = 'HTMLElement';
+        isElement = true;
+        expect(isClass).to.equal(
+          false,
+          'HTMLElement documentation should not be considered a class',
+        );
+      }
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
@@ -137,7 +157,11 @@ export class DocsParser {
         parsed.push({
           ...container,
           type: 'Class',
-          process: null as any,
+          // FIXME: We should read the process correctly
+          process: {
+            main: true,
+            renderer: true,
+          },
           constructorMethod: constructorMethod
             ? {
                 signature: constructorMethod.signature,
@@ -164,17 +188,39 @@ export class DocsParser {
         });
       } else {
         // This is a module
-        parsed.push({
-          ...container,
-          type: 'Module',
-          process: null as any,
-          // ## Methods
-          methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
-          // ## Properties
-          properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
-          // ## Events
-          events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
-        });
+        if (isElement) {
+          parsed.push({
+            ...container,
+            type: 'Element',
+            // FIXME: We should read the process correctly
+            process: {
+              main: true,
+              renderer: true,
+            },
+            // ## Methods
+            methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
+            // ## Properties
+            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
+            // ## Events
+            events: parseEventBlocks(findContentInsideHeader(tokens, 'DOM Events', 2)),
+          });
+        } else {
+          parsed.push({
+            ...container,
+            type: 'Module',
+            // FIXME: We should read the process correctly
+            process: {
+              main: true,
+              renderer: true,
+            },
+            // ## Methods
+            methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
+            // ## Properties
+            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
+            // ## Events
+            events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
+          });
+        }
       }
     }
 
@@ -215,7 +261,7 @@ export class DocsParser {
 
     for (const apiFile of this.apiFiles) {
       try {
-        docs.addModuleOrClass(...(await this.parseAPIFile(apiFile)));
+        docs.addModuleOrClassOrElement(...(await this.parseAPIFile(apiFile)));
       } catch (err) {
         throw extendError(`An error occurred while processing: "${apiFile}"`, err);
       }
