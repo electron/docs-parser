@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
-import * as MarkdownIt from 'markdown-it';
+import MarkdownIt from 'markdown-it';
+import Token from 'markdown-it/lib/token';
 import * as path from 'path';
 import toCamelCase = require('lodash.camelcase');
 
@@ -15,7 +16,6 @@ import {
 import {
   findNextList,
   convertListToTypedKeys,
-  MarkdownTokens,
   safelyJoinTokens,
   findContentAfterList,
   findContentInsideHeader,
@@ -42,10 +42,10 @@ export class DocsParser {
   private async parseBaseContainers(
     filePath: string,
     fileContents: string,
-    tokens: MarkdownTokens,
+    tokens: Token[],
   ): Promise<
     {
-      tokens: MarkdownTokens;
+      tokens: Token[];
       container: BaseDocumentationContainer;
       isClass: boolean;
     }[]
@@ -59,7 +59,7 @@ export class DocsParser {
     );
 
     const parsedContainers: {
-      tokens: MarkdownTokens;
+      tokens: Token[];
       container: BaseDocumentationContainer;
       isClass: boolean;
     }[] = [];
@@ -73,11 +73,11 @@ export class DocsParser {
         let name = heading.heading;
         if (isStructure) {
           expect(name).to.match(
-            / Object$/,
+            / Object(?: extends `.+?`)?$/,
             'Structure doc files top level heading should end with " Object"',
           );
           // Remove " Object"
-          name = name.substr(0, name.length - 7);
+          name = name.replace(/ Object(?: extends `.+?`)?$/, '');
         } else if (isClass) {
           // Remove "Class: "
           name = name.substr(7);
@@ -90,11 +90,13 @@ export class DocsParser {
           // TODO: Pull the top level Module / Class description
         }
 
+        const extendsMatch = / Object extends `(.+?)`?$/.exec(heading.heading);
         parsedContainers.push({
           isClass,
           tokens: heading.content,
           container: {
             name,
+            extends: extendsMatch ? extendsMatch[1] : undefined,
             description,
             slug: path.basename(filePath, '.md'),
             websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,

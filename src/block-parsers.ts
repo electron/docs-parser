@@ -1,7 +1,7 @@
 import { expect } from 'chai';
+import Token from 'markdown-it/lib/token';
 
 import {
-  MarkdownTokens,
   headingsAndContent,
   findNextList,
   convertListToTypedKeys,
@@ -48,9 +48,12 @@ export const _headingToMethodBlock = (
     }));
   }
 
-  const { parsedDescription, parsedReturnType } = extractReturnType(
-    safelyJoinTokens(findContentAfterList(heading.content, true)),
-  );
+  const returnTokens =
+    methodSignature === '()'
+      ? findContentAfterHeadingClose(heading.content)
+      : findContentAfterList(heading.content, true);
+
+  const { parsedDescription, parsedReturnType } = extractReturnType(returnTokens);
 
   return {
     name: methodString,
@@ -72,7 +75,7 @@ export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocume
   const [, propertyString] = propertyStringMatch;
 
   const { parsedDescription, parsedReturnType } = extractReturnType(
-    safelyJoinTokens(findContentAfterHeadingClose(heading.content)),
+    findContentAfterHeadingClose(heading.content),
     StripReturnTypeBehavior.DO_NOT_STRIP,
     'An?',
   );
@@ -125,21 +128,19 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
   };
 };
 
-export const parseMethodBlocks = (tokens: MarkdownTokens | null): MethodDocumentationBlock[] => {
+export const parseMethodBlocks = (tokens: Token[] | null): MethodDocumentationBlock[] => {
   if (!tokens) return [];
 
   return headingsAndContent(tokens).map(heading => _headingToMethodBlock(heading)!);
 };
 
-export const parsePropertyBlocks = (
-  tokens: MarkdownTokens | null,
-): PropertyDocumentationBlock[] => {
+export const parsePropertyBlocks = (tokens: Token[] | null): PropertyDocumentationBlock[] => {
   if (!tokens) return [];
 
   return headingsAndContent(tokens).map(_headingToPropertyBlock);
 };
 
-export const parseEventBlocks = (tokens: MarkdownTokens | null): EventDocumentationBlock[] => {
+export const parseEventBlocks = (tokens: Token[] | null): EventDocumentationBlock[] => {
   if (!tokens) return [];
 
   return headingsAndContent(tokens).map(_headingToEventBlock);

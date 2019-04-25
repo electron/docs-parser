@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import * as fs from 'fs-extra';
-import * as minimist from 'minimist';
-import * as ora from 'ora';
+import minimist from 'minimist';
+import ora from 'ora';
 import * as path from 'path';
-import * as pretty from 'pretty-ms';
+import pretty from 'pretty-ms';
 
 import { parseDocs } from '.';
 import chalk from 'chalk';

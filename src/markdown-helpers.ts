@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as MarkdownIt from 'markdown-it';
+import Token from 'markdown-it/lib/token';
 import {
   TypeInformation,
   PropertyDocumentationBlock,
@@ -7,9 +7,7 @@ import {
   PossibleStringValue,
 } from './ParsedDocumentation';
 
-export type MarkdownTokens = ReturnType<MarkdownIt['parse']>;
-
-export const findNextList = (tokens: MarkdownTokens) => {
+export const findNextList = (tokens: Token[]) => {
   const start = tokens.findIndex(t => t.type === 'bullet_list_open');
   if (start === -1) return null;
   let opened = 1;
@@ -27,14 +25,14 @@ export const findNextList = (tokens: MarkdownTokens) => {
   return tokens.slice(start, start + end + 1);
 };
 
-export const findFirstHeading = (tokens: MarkdownTokens) => {
+export const findFirstHeading = (tokens: Token[]) => {
   const open = tokens.findIndex(token => token.type === 'heading_open');
   expect(open).to.not.equal(-1, "expected to find a heading token but couldn't");
   expect(tokens[open + 2].type).to.equal('heading_close');
   return tokens[open + 1];
 };
 
-export const findContentAfterList = (tokens: MarkdownTokens, returnAllOnNoList = false) => {
+export const findContentAfterList = (tokens: Token[], returnAllOnNoList = false) => {
   let start = -1;
   let opened = 0;
   let foundBulletListOpen = false;
@@ -60,7 +58,7 @@ export const findContentAfterList = (tokens: MarkdownTokens, returnAllOnNoList =
   return tokens.slice(start + 1, end);
 };
 
-export const findContentAfterHeadingClose = (tokens: MarkdownTokens) => {
+export const findContentAfterHeadingClose = (tokens: Token[]) => {
   const start = tokens.findIndex(t => t.type === 'heading_close');
   const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
@@ -70,11 +68,11 @@ export const findContentAfterHeadingClose = (tokens: MarkdownTokens) => {
 export type HeadingContent = {
   heading: string;
   level: number;
-  headingTokens: MarkdownTokens;
-  content: MarkdownTokens;
+  headingTokens: Token[];
+  content: Token[];
 };
 
-export const headingsAndContent = (tokens: MarkdownTokens): HeadingContent[] => {
+export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
   const groups: HeadingContent[] = [];
   for (const [start, token] of tokens.entries()) {
     if (token.type !== 'heading_open') continue;
@@ -103,7 +101,7 @@ export const headingsAndContent = (tokens: MarkdownTokens): HeadingContent[] => 
   return groups;
 };
 
-export const findConstructorHeader = (tokens: MarkdownTokens) => {
+export const findConstructorHeader = (tokens: Token[]) => {
   const groups = headingsAndContent(tokens);
   const constructorHeader = groups.find(
     group => group.heading.startsWith('`new ') && group.level === 3,
@@ -112,7 +110,7 @@ export const findConstructorHeader = (tokens: MarkdownTokens) => {
 };
 
 export const findContentInsideHeader = (
-  tokens: MarkdownTokens,
+  tokens: Token[],
   expectedHeader: string,
   expectedLevel: number,
 ) => {
@@ -128,6 +126,14 @@ export const rawTypeToTypeInformation = (
   relatedDescription: string,
   subTypedKeys: TypedKey[] | null,
 ): TypeInformation => {
+  // Handle the edge case of "null"
+  if (rawType === 'null' || rawType === '`null`') {
+    return {
+      type: 'null',
+      collection: false,
+    };
+  }
+
   let collection = false;
   let typeString = rawType;
   if (rawType.endsWith('[]')) {
@@ -136,7 +142,7 @@ export const rawTypeToTypeInformation = (
   }
   typeString = typeString.trim().replace(/^\((.+)\)$/, '$1');
 
-  const multiTypes = typeString.split('|');
+  const multiTypes = typeString.split(/(?:\|)|(?:\bor\b)/);
   if (multiTypes.length > 1) {
     return {
       collection,
@@ -193,7 +199,24 @@ export const rawTypeToTypeInformation = (
     const genericTypeString = genericTypeMatch[1];
     const innerTypes = genericTypeMatch[2]
       .split(',')
-      .map(t => rawTypeToTypeInformation(t.trim(), '', null));
+      .map(t => rawTypeToTypeInformation(t.trim(), '', null))
+      .map(info => {
+        if (info.type === 'Object') {
+          return {
+            ...info,
+            type: 'Object',
+            properties: subTypedKeys
+              ? subTypedKeys.map<PropertyDocumentationBlock>(typedKey => ({
+                  name: typedKey.key,
+                  description: typedKey.description,
+                  required: typedKey.required,
+                  ...typedKey.type,
+                }))
+              : [],
+          };
+        }
+        return info;
+      });
 
     // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
     // parameter types and the Nth innerType is the return type
@@ -248,13 +271,14 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
 };
 
 export const extractReturnType = (
-  rawDescription: string,
+  tokens: Token[],
   stripTypeFromDescription = StripReturnTypeBehavior.STRIP,
   prefix = 'Returns',
 ): {
   parsedDescription: string;
   parsedReturnType: TypeInformation | null;
 } => {
+  const rawDescription = safelyJoinTokens(tokens);
   const description = rawDescription.trim();
   if (!new RegExp(`^${prefix} `, 'igm').test(description.trim())) {
     return {
@@ -264,7 +288,7 @@ export const extractReturnType = (
   }
 
   const returnsWithNewLineMatch = description.match(
-    new RegExp(`${prefix} \`([^\`]+?)\`(\. |\n|$)`),
+    new RegExp(`${prefix} \`([^\`]+?)\`:?(\. |\n|$)`),
   );
   const returnsWithHyphenMatch = description.match(new RegExp(`${prefix} \`([^\`]+?)\` - `));
   const returnsWithContinousSentence = description.match(new RegExp(`${prefix} \`([^\`]+?)\` `));
@@ -291,14 +315,22 @@ export const extractReturnType = (
     };
   }
 
+  const list = findNextList(tokens);
+  let typedKeys: null | TypedKey[] = null;
+  if (list) {
+    try {
+      typedKeys = convertListToTypedKeys(tokens);
+    } catch {}
+  }
+
   return {
-    parsedDescription,
-    parsedReturnType: rawTypeToTypeInformation(rawReturnType, parsedDescription, null),
+    parsedDescription: parsedDescription.trim(),
+    parsedReturnType: rawTypeToTypeInformation(rawReturnType, parsedDescription, typedKeys),
   };
 };
 
 // NOTE: This method obliterates code fences
-export const safelyJoinTokens = (tokens: MarkdownTokens) => {
+export const safelyJoinTokens = (tokens: Token[]) => {
   let joinedContent = '';
   let listLevel = -1;
   for (const tokenToCheck of tokens) {
@@ -411,9 +443,9 @@ type TypedKey = {
 };
 
 type List = { items: ListItem[] };
-type ListItem = { tokens: MarkdownTokens; nestedList: List | null };
+type ListItem = { tokens: Token[]; nestedList: List | null };
 
-const getNestedList = (rawTokens: MarkdownTokens): List => {
+const getNestedList = (rawTokens: Token[]): List => {
   const rootList: List = { items: [] };
 
   const depthMap: Map<number, List | null> = new Map();
@@ -513,7 +545,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
   return keys;
 };
 
-export const convertListToTypedKeys = (listTokens: MarkdownTokens): TypedKey[] => {
+export const convertListToTypedKeys = (listTokens: Token[]): TypedKey[] => {
   const list = getNestedList(listTokens);
 
   return convertNestedListToTypedKeys(list);

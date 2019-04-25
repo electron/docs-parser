@@ -60,6 +60,7 @@ export type PropertyDocumentationBlock = DocumentationBlock & {
 
 export type BaseDocumentationContainer = {
   name: string;
+  extends?: string;
   description: string;
   version: string;
   slug: string;
@@ -81,6 +82,7 @@ export type ModuleDocumentationContainer = {
 export type StructureDocumentationContainer = {
   type: 'Structure';
   properties: PropertyDocumentationBlock[];
+  extends?: string;
 } & BaseDocumentationContainer;
 
 export type ClassDocumentationContainer = {
