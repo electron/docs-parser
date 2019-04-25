@@ -1,11 +1,12 @@
 {
-  "name": "electron-docs-parser",
-  "version": "0.1.0",
+  "name": "@electron/docs-parser",
+  "version": "0.0.1",
   "description": "Parse Electron documentation into a machine readable JSON file",
   "main": "dist/index.js",
   "author": "Samuel Attard",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "prettier:check": "prettier --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test": "jest"
@@ -14,6 +15,7 @@
     "electron-docs-parser": "./dist/bin.js"
   },
   "devDependencies": {
+    "@continous-auth/semantic-release-npm": "1.0.3",
     "@types/chai": "^4.1.7",
     "@types/fs-extra": "^5.0.5",
     "@types/jest": "^24.0.11",
@@ -23,6 +25,7 @@
     "jest": "^24.7.1",
     "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
+    "semantic-release": "^15.13.3",
     "typescript": "^3.4.5"
   },
   "dependencies": {
