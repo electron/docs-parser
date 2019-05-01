@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "bin": {
+    "electron-docs-linter": "./dist/bin.js",
     "electron-docs-parser": "./dist/bin.js"
   },
   "devDependencies": {
