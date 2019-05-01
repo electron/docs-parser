@@ -200,7 +200,7 @@ export class DocsParser {
             // ## Methods
             methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
             // ## Properties
-            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
+            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Tag Attributes', 2)),
             // ## Events
             events: parseEventBlocks(findContentInsideHeader(tokens, 'DOM Events', 2)),
           });
