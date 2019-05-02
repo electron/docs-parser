@@ -88,7 +88,7 @@ export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocume
   return {
     name: propertyString,
     description: parsedDescription,
-    required: /\(optional\)/i.test(parsedDescription),
+    required: !/\(optional\)/i.test(parsedDescription),
     ...parsedReturnType!,
   };
 };
