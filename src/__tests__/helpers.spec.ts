@@ -1,4 +1,4 @@
-import { extendError } from '../helpers';
+import { extendError } from '../utils/helpers';
 import chalk from 'chalk';
 
 describe('extendError', () => {

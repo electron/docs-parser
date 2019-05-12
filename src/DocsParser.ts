@@ -24,7 +24,8 @@ import {
   findConstructorHeader,
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
-import { extendError } from './helpers';
+import { extendError } from './utils/helpers';
+import { fetchVersionAdded } from './utils/find-version-added';
 import {
   parseMethodBlocks,
   _headingToMethodBlock,
@@ -38,7 +39,7 @@ export class DocsParser {
     private electronVersion: string,
     private apiFiles: string[],
     private structureFiles: string[],
-  ) {}
+  ) { }
 
   private async parseBaseContainers(
     filePath: string,
@@ -59,6 +60,7 @@ export class DocsParser {
       `File "${filePath}" does not have a top level heading, this is required`,
     );
 
+    const versionAdded = await fetchVersionAdded(`${relativeDocsPath}.md`);
     const parsedContainers: {
       tokens: Token[];
       container: BaseDocumentationContainer;
@@ -99,6 +101,7 @@ export class DocsParser {
             name,
             extends: extendsMatch ? extendsMatch[1] : undefined,
             description,
+            versionAdded,
             slug: path.basename(filePath, '.md'),
             websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,
             repoUrl: `${REPO_BASE_DOCS_URL(this.electronVersion)}/${relativeDocsPath}.md`,
@@ -147,7 +150,7 @@ export class DocsParser {
         const levelFourHeader = headingsAndContent(tokens).find(h => h.level === 4);
         const instanceName = levelFourHeader
           ? (levelFourHeader.heading.split('`')[1] || '').split('.')[0] ||
-            toCamelCase(container.name)
+          toCamelCase(container.name)
           : toCamelCase(container.name);
 
         // Try to get the constructor method
@@ -164,9 +167,9 @@ export class DocsParser {
           },
           constructorMethod: constructorMethod
             ? {
-                signature: constructorMethod.signature,
-                parameters: constructorMethod.parameters,
-              }
+              signature: constructorMethod.signature,
+              parameters: constructorMethod.parameters,
+            }
             : null,
           // ### Static Methods
           staticMethods: parseMethodBlocks(findContentInsideHeader(tokens, 'Static Methods', 3)),

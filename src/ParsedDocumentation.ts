@@ -17,16 +17,16 @@ export declare type DetailedFunctionType = {
 };
 export declare type DetailedType = (
   | {
-      type: TypeInformation[];
-    }
+    type: TypeInformation[];
+  }
   | DetailedFunctionType
   | DetailedObjectType
   | DetailedStringType
   | {
-      type: string;
-    }) & {
-  innerTypes?: TypeInformation[];
-};
+    type: string;
+  }) & {
+    innerTypes?: TypeInformation[];
+  };
 export declare type TypeInformation = {
   collection: boolean;
 } & DetailedType;
@@ -62,6 +62,7 @@ export declare type BaseDocumentationContainer = {
   version: string;
   slug: string;
   websiteUrl: string;
+  versionAdded: string;
   repoUrl: string;
 };
 export declare type ModuleDocumentationContainer = {

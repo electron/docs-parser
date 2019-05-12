@@ -23,21 +23,24 @@
     "@types/lodash.camelcase": "^4.3.6",
     "@types/minimist": "^1.2.0",
     "@types/pretty-ms": "^4.0.0",
+    "@types/semver": "^6.0.0",
     "jest": "^24.7.1",
     "prettier": "^1.17.0",
-    "ts-jest": "^24.0.2",
     "semantic-release": "^15.13.3",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   },
   "dependencies": {
     "@types/markdown-it": "^0.0.7",
     "chai": "^4.2.0",
     "chalk": "^2.4.2",
+    "dugite": "^1.88.0-beta.0",
     "fs-extra": "^7.0.1",
     "lodash.camelcase": "^4.3.0",
     "markdown-it": "^8.4.2",
     "minimist": "^1.2.0",
     "ora": "^3.4.0",
-    "pretty-ms": "^5.0.0"
+    "pretty-ms": "^5.0.0",
+    "semver": "^6.0.0"
   }
 }
