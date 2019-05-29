@@ -221,10 +221,23 @@ export const rawTypeToTypeInformation = (
     // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
     // parameter types and the Nth innerType is the return type
     if (genericTypeString === 'Function') {
+      const genericProvidedParams = innerTypes.slice(0, innerTypes.length - 2);
+
       return {
         collection,
         type: 'Function',
-        parameters: innerTypes.slice(0, innerTypes.length - 2),
+        parameters:
+          // If no param types are provided in the <A, B, C> syntax then we should fallback to the normal one
+          genericProvidedParams.length === 0
+            ? subTypedKeys
+              ? subTypedKeys.map<MethodParameterDocumentation>(typedKey => ({
+                  name: typedKey.key,
+                  description: typedKey.description,
+                  required: typedKey.required,
+                  ...typedKey.type,
+                }))
+              : []
+            : genericProvidedParams,
         returns: innerTypes[innerTypes.length - 1],
       };
     }
