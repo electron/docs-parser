@@ -121,6 +121,54 @@ export const findContentInsideHeader = (
   return group.content;
 };
 
+export const safelySeparateTypeStringOn = (typeString: string, targetChar: string) => {
+  const types: string[] = [];
+  let current = '';
+  let depth = 0;
+  for (let i = 0; i < typeString.length; i++) {
+    const char = typeString[i];
+    if (char === targetChar && depth === 0) {
+      types.push(current);
+      current = '';
+    } else {
+      current += char;
+      switch (char) {
+        case '<':
+          depth++;
+          break;
+        case '>':
+          depth--;
+          break;
+      }
+    }
+  }
+  types.push(current);
+  return types.map(t => t.trim()).filter(t => !!t);
+};
+
+export const getTopLevelMultiTypes = (typeString: string) => {
+  return safelySeparateTypeStringOn(typeString, '|');
+};
+
+export const getTopLevelOrderedTypes = (typeString: string) => {
+  return safelySeparateTypeStringOn(typeString, ',');
+};
+
+export const getTopLevelGenericType = (typeString: string) => {
+  if (
+    typeString[typeString.length - 1] !== '>' &&
+    typeString.slice(typeString.length - 3) !== '>[]'
+  )
+    return null;
+  const start = typeString.indexOf('<');
+  const end = typeString.length - [...typeString].reverse().indexOf('>') - 1;
+  if (start === -1) return null;
+  return {
+    outerType: typeString.slice(0, start),
+    genericType: typeString.slice(start + 1, end),
+  };
+};
+
 export const rawTypeToTypeInformation = (
   rawType: string,
   relatedDescription: string,
@@ -135,19 +183,33 @@ export const rawTypeToTypeInformation = (
   }
 
   let collection = false;
-  let typeString = rawType;
+  let typeString = rawType.trim();
   if (rawType.endsWith('[]')) {
     collection = true;
-    typeString = rawType.substr(0, rawType.length - 2);
+    typeString = rawType.substr(0, rawType.length - 2).trim();
   }
-  typeString = typeString.trim().replace(/^\((.+)\)$/, '$1');
+  // This impacts the above usage of "collection" if the last two chars were []
+  // i.e. There is a strong different between "A | B[]" and "(A | B)[]" and "(A | B[])"
+  // if collection === true and the subsequent value was wrapped it assumed the generated
+  // type union is a "collection".  If it wasn't wrapped only the last item in the type union
+  // is considered a "collection"
+  const wasBracketWrapped = typeString.startsWith('(') && typeString.endsWith(')');
+  typeString = typeString.replace(/^\((.+)\)$/, '$1');
 
-  const multiTypes = typeString.split(/(?:\|)|(?:\bor\b)/);
+  // const multiTypes = typeString.split(/(?:\|)|(?:\bor\b)/);
+  const multiTypes = getTopLevelMultiTypes(typeString);
   if (multiTypes.length > 1) {
     return {
-      collection,
+      collection: collection && wasBracketWrapped,
       type: multiTypes
-        .map(multiType => multiType.trim())
+        .map(
+          // See the comment a few lines up on "wasBracketWrapped"
+          // This re-inserts the stripped "[]" if appropriate
+          (multiType, index) =>
+            `${multiType.trim()}${
+              index === multiTypes.length - 1 && !wasBracketWrapped && collection ? '[]' : ''
+            }`,
+        )
         .map(multiType => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
     };
   }
@@ -194,11 +256,10 @@ export const rawTypeToTypeInformation = (
     };
   }
 
-  const genericTypeMatch = typeString.match(/^(.+)<(.+)>$/);
+  const genericTypeMatch = getTopLevelGenericType(typeString);
   if (genericTypeMatch) {
-    const genericTypeString = genericTypeMatch[1];
-    const innerTypes = genericTypeMatch[2]
-      .split(',')
+    const genericTypeString = genericTypeMatch.outerType;
+    const innerTypes = getTopLevelOrderedTypes(genericTypeMatch.genericType)
       .map(t => rawTypeToTypeInformation(t.trim(), '', null))
       .map(info => {
         if (info.type === 'Object') {
@@ -221,7 +282,7 @@ export const rawTypeToTypeInformation = (
     // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
     // parameter types and the Nth innerType is the return type
     if (genericTypeString === 'Function') {
-      const genericProvidedParams = innerTypes.slice(0, innerTypes.length - 2);
+      const genericProvidedParams = innerTypes.slice(0, innerTypes.length - 1);
 
       return {
         collection,

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import MarkdownIt from 'markdown-it';
 
-import { safelyJoinTokens, extractStringEnum } from '../markdown-helpers';
+import { safelyJoinTokens, extractStringEnum, rawTypeToTypeInformation } from '../markdown-helpers';
 
 describe('markdown-helpers', () => {
   describe('safelyJoinTokens', () => {
@@ -84,6 +84,64 @@ describe('markdown-helpers', () => {
       expect(values[0].value).toBe('a');
       expect(values[1].value).toBe('b');
       expect(values[2].value).toBe('c');
+    });
+  });
+
+  describe('rawTypeToTypeInformation()', () => {
+    it('should map a primitive types correctly', () => {
+      expect(rawTypeToTypeInformation('Boolean', '', null)).toMatchSnapshot();
+    });
+
+    it('should map an unknown types correctly', () => {
+      expect(rawTypeToTypeInformation('MyType', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a Promise types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a complex Promise types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T | A>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a nested Promise types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T | Promise<A>>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a nested complex Promise types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T | Promise<A[]>[]>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a nested complex Promise types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T | Promise<A[]>[]>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a nested Function types correctly', () => {
+      expect(rawTypeToTypeInformation('Promise<T | Function<A[]>[]>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a wrapped collection type correctly', () => {
+      expect(
+        rawTypeToTypeInformation('Promise<(T | Function<A[]>)[]>', '', null),
+      ).toMatchSnapshot();
+    });
+
+    it('should map a function return type correctly', () => {
+      expect(rawTypeToTypeInformation('Function<R>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a function return type + param types correctly', () => {
+      expect(rawTypeToTypeInformation('Function<P1, P2, R>', '', null)).toMatchSnapshot();
+    });
+
+    it('should map a function with complex return type + complex param types correctly', () => {
+      expect(
+        rawTypeToTypeInformation(
+          'Function<P1<InnerP1, AnotherInnerP1[]>, P2<(InnerP2 | AnotherInnerP2<SuperDeepP2, EvenDeeperP2>)[]>, R<Foo>>',
+          '',
+          null,
+        ),
+      ).toMatchSnapshot();
     });
   });
 });
