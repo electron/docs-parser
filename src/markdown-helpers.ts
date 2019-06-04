@@ -603,7 +603,11 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
       'optionality for a typed key should be defined before the "-" and after the type',
     );
 
-    const isRootOptional = / ?\(optional\) ?/i.test(rawType);
+    const isRootOptional = / ?\(optional\) ?/.test(rawType);
+    expect(rawType).not.to.match(
+      / ?\(Optional\) ?/,
+      'optionality should be defined with "(optional)", all lower case, no capital "O"',
+    );
     const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '').replace(/_.+?_/g, '');
     const subTypedKeys = item.nestedList ? convertNestedListToTypedKeys(item.nestedList) : null;
     const type = rawTypeToTypeInformation(cleanedType.trim(), rawDescription, subTypedKeys);
