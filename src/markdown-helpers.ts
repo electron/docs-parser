@@ -298,7 +298,7 @@ export const rawTypeToTypeInformation = (
                   ...typedKey.type,
                 }))
               : []
-            : genericProvidedParams,
+            : (genericProvidedParams as MethodParameterDocumentation[]),
         returns: innerTypes[innerTypes.length - 1],
       };
     }

@@ -18,6 +18,61 @@ import {
   EventDocumentationBlock,
 } from './ParsedDocumentation';
 
+type GuessedParam = {
+  name: string;
+  optional: boolean;
+};
+
+export const guessParametersFromSignature = (signature: string) => {
+  expect(signature).to.match(
+    /^\(([a-zA-Z,\[\] ]+|(\.\.\.[^\.])|([a-zA-Z][0-9]))+\)$/g,
+    'signature should be a bracket wrapped group of parameters',
+  );
+  const justParams = signature.slice(1, signature.length - 1);
+  let optionalDepth = 0;
+  const params: GuessedParam[] = [];
+  let currentParam = '';
+  let currentOptional = false;
+  const maybePushCurrent = () => {
+    const trimmed = currentParam.trim();
+    if (trimmed) {
+      params.push({
+        name: trimmed,
+        optional: currentOptional,
+      });
+      currentParam = '';
+    }
+  };
+  for (let i = 0; i < justParams.length; i++) {
+    const char = justParams[i];
+    switch (char) {
+      case '[':
+        optionalDepth++;
+        break;
+      case ']':
+        maybePushCurrent();
+        optionalDepth--;
+        expect(optionalDepth).to.be.gte(
+          0,
+          `optional depth should never be negative, you have too many "]" characters in your signature: "${signature}"`,
+        );
+        break;
+      case ',':
+        maybePushCurrent();
+        break;
+      default:
+        if (!currentParam.trim()) currentOptional = optionalDepth > 0;
+        currentParam += char;
+    }
+  }
+  maybePushCurrent();
+  expect(optionalDepth).to.equal(
+    0,
+    `optional depth should return to 0, you have mismateched [ and ] characters in your signature: "${signature}"`,
+  );
+  return params;
+};
+
 export const _headingToMethodBlock = (
   heading: HeadingContent | null,
 ): MethodDocumentationBlock | null => {
@@ -34,6 +89,7 @@ export const _headingToMethodBlock = (
 
   let parameters: MethodDocumentationBlock['parameters'] = [];
   if (methodSignature !== '()') {
+    const guessedParams = guessParametersFromSignature(methodSignature);
     // If we have parameters we need to find the list of typed keys
     const list = findNextList(heading.content)!;
     expect(list).to.not.equal(
@@ -46,6 +102,18 @@ export const _headingToMethodBlock = (
       required: typedKey.required,
       ...typedKey.type,
     }));
+    expect(parameters).to.have.lengthOf(
+      guessedParams.length,
+      `should have the same number of documented parameters as we have in the method signature: "${methodSignature}"`,
+    );
+    for (let i = 0; i < parameters.length; i++) {
+      expect(parameters[i].required).to.equal(
+        !guessedParams[i].optional,
+        `the optionalality of a paramater in the signature should match the documented optionality in the parameter description: "${methodString}${methodSignature}", while parsing parameter: "${
+          parameters[i].name
+        }"`,
+      );
+    }
   }
 
   const returnTokens =
