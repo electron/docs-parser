@@ -24,15 +24,13 @@ async function getAllMarkdownFiles(inDir: string) {
   const allMarkdownFiles: string[] = [];
 
   const children = await fs.readdir(inDir);
-  await Promise.all(
-    children.map(async child => {
-      const childPath = path.resolve(inDir, child);
-      const stats = await fs.stat(childPath);
-      if (path.extname(childPath) === '.md' && stats.isFile()) {
-        allMarkdownFiles.push(childPath);
-      }
-    }),
-  );
+  for (const child of children) {
+    const childPath = path.resolve(inDir, child);
+    const stats = await fs.stat(childPath);
+    if (path.extname(childPath) === '.md' && stats.isFile()) {
+      allMarkdownFiles.push(childPath);
+    }
+  }
 
   return allMarkdownFiles;
 }
