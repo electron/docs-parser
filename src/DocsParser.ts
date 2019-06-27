@@ -70,6 +70,9 @@ export class DocsParser {
       const isSecondLevelClassHeading =
         heading.level === 2 && heading.heading.startsWith('Class: ');
       const isClass = isSecondLevelClassHeading && !isTopLevelModuleHeading;
+      if (isTopLevelModuleHeading && heading.heading.endsWith('(Draft)')) {
+        continue;
+      }
       if (isTopLevelModuleHeading || isSecondLevelClassHeading) {
         let name = heading.heading;
         if (isStructure) {
