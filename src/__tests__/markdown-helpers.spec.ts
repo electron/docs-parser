@@ -62,6 +62,15 @@ describe('markdown-helpers', () => {
       expect(values[2].value).toBe('z');
     });
 
+    it('should extract an enum of the format "can be x, y, or z"', () => {
+      const values = extractStringEnum('Can be `x`, `y`, or `z`')!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(3);
+      expect(values[0].value).toBe('x');
+      expect(values[1].value).toBe('y');
+      expect(values[2].value).toBe('z');
+    });
+
     it('should extract an enum of the format "values include a', () => {
       const values = extractStringEnum('Values include `a`')!;
       expect(values).not.toBe(null);
