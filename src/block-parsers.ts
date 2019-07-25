@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import Token from 'markdown-it/lib/token';
 
 import {
+  parseHeadingTags,
   headingsAndContent,
   findNextList,
   convertListToTypedKeys,
@@ -78,14 +79,14 @@ export const _headingToMethodBlock = (
 ): MethodDocumentationBlock | null => {
   if (!heading) return null;
 
-  const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`/g;
+  const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`( _(?:[^_]+?)_)*/g;
   const methodStringMatch = methodStringRegexp.exec(heading.heading)!;
   methodStringRegexp.lastIndex = -1;
   expect(heading.heading).to.match(
     methodStringRegexp,
     'each method should have a code blocked method name',
   );
-  const [, methodString, methodSignature] = methodStringMatch;
+  const [, methodString, methodSignature, headingTags] = methodStringMatch;
 
   let parameters: MethodDocumentationBlock['parameters'] = [];
   if (methodSignature !== '()') {
@@ -129,18 +130,19 @@ export const _headingToMethodBlock = (
     description: parsedDescription,
     parameters,
     returns: parsedReturnType,
+    additionalTags: parseHeadingTags(headingTags),
   };
 };
 
 export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocumentationBlock => {
-  const propertyStringRegexp = /`(?:.+\.)?(.+?)`/g;
+  const propertyStringRegexp = /`(?:.+\.)?(.+?)`( _(?:[^_]+?)_)*/g;
   const propertyStringMatch = propertyStringRegexp.exec(heading.heading)!;
   propertyStringRegexp.lastIndex = -1;
   expect(heading.heading).to.match(
     propertyStringRegexp,
     'each property should have a code blocked property name',
   );
-  const [, propertyString] = propertyStringMatch;
+  const [, propertyString, headingTags] = propertyStringMatch;
 
   const { parsedDescription, parsedReturnType } = extractReturnType(
     findContentAfterHeadingClose(heading.content),
@@ -157,16 +159,17 @@ export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocume
     name: propertyString,
     description: parsedDescription,
     required: !/\(optional\)/i.test(parsedDescription),
+    additionalTags: parseHeadingTags(headingTags),
     ...parsedReturnType!,
   };
 };
 
 export const _headingToEventBlock = (heading: HeadingContent): EventDocumentationBlock => {
-  const eventNameRegexp = /^Event: '(.+)'/g;
+  const eventNameRegexp = /^Event: '(.+)'( _(?:[^_]+?)_)*/g;
   const eventNameMatch = eventNameRegexp.exec(heading.heading)!;
   eventNameRegexp.lastIndex = -1;
   expect(heading.heading).to.match(eventNameRegexp, 'each event should have a quoted event name');
-  const [, eventName] = eventNameMatch;
+  const [, eventName, headingTags] = eventNameMatch;
 
   expect(eventName).to.not.equal('', 'should have a non-zero-length event name');
 
@@ -194,6 +197,7 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
     name: eventName,
     description,
     parameters,
+    additionalTags: parseHeadingTags(headingTags),
   };
 };
 

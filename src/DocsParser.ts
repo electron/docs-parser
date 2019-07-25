@@ -254,6 +254,7 @@ export class DocsParser {
         name: typedKey.key,
         description: typedKey.description,
         required: typedKey.required,
+        additionalTags: typedKey.additionalTags,
         ...typedKey.type,
       })),
     };
