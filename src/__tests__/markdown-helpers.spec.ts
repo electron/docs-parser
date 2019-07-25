@@ -2,9 +2,43 @@ import * as fs from 'fs';
 import * as path from 'path';
 import MarkdownIt from 'markdown-it';
 
-import { safelyJoinTokens, extractStringEnum, rawTypeToTypeInformation } from '../markdown-helpers';
+import {
+  safelyJoinTokens,
+  extractStringEnum,
+  rawTypeToTypeInformation,
+  parseHeadingTags,
+} from '../markdown-helpers';
+import { DocumentationTag } from '../ParsedDocumentation';
 
 describe('markdown-helpers', () => {
+  describe('parseHeadingTags', () => {
+    it('should return an empty array for null input', () => {
+      expect(parseHeadingTags(null)).toEqual([]);
+    });
+
+    it('should return an empty array if there are no tags in the input', () => {
+      expect(parseHeadingTags('String thing no tags')).toEqual([]);
+    });
+
+    it('should return a list of tags if there is one tag', () => {
+      expect(parseHeadingTags(' _macOS_')).toEqual([DocumentationTag.OS_MACOS]);
+    });
+
+    it('should return a list of tags if there are multiple tags', () => {
+      expect(parseHeadingTags(' _macOS_ _Windows_ _Experimental_')).toEqual([
+        DocumentationTag.OS_MACOS,
+        DocumentationTag.OS_WINDOWS,
+        DocumentationTag.STABILITY_EXPERIMENTAL,
+      ]);
+    });
+
+    it('should throw an error if there is a tag not on the whitelist', () => {
+      expect(() => parseHeadingTags(' _Awesome_')).toThrowErrorMatchingInlineSnapshot(
+        `"heading tags must be from the whitelist: [\\"macOS\\",\\"mas\\",\\"Windows\\",\\"Linux\\",\\"Experimental\\",\\"Deprecated\\",\\"Readonly\\"]: expected [ Array(7) ] to include 'Awesome'"`,
+      );
+    });
+  });
+
   describe('safelyJoinTokens', () => {
     it('should join no tokens to an empty string', () => {
       expect(safelyJoinTokens([])).toBe('');

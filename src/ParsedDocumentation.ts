@@ -1,3 +1,12 @@
+export enum DocumentationTag {
+  OS_MACOS = 'os_macos',
+  OS_MAS = 'os_mas',
+  OS_WINDOWS = 'os_windows',
+  OS_LINUX = 'os_linux',
+  STABILITY_EXPERIMENTAL = 'stability_experimental',
+  STABILITY_DEPRECATED = 'stability_deprecated',
+  AVAILABILITY_READONLY = 'availability_readonly',
+}
 export declare type PossibleStringValue = {
   value: string;
   description: string;
@@ -43,6 +52,7 @@ export declare type EventParameterDocumentation = {
 export declare type DocumentationBlock = {
   name: string;
   description: string;
+  additionalTags: DocumentationTag[];
 };
 export declare type MethodDocumentationBlock = DocumentationBlock & {
   signature: string;

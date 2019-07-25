@@ -5,7 +5,43 @@ import {
   PropertyDocumentationBlock,
   MethodParameterDocumentation,
   PossibleStringValue,
+  DocumentationTag,
 } from './ParsedDocumentation';
+
+const tagMap = {
+  macOS: DocumentationTag.OS_MACOS,
+  mas: DocumentationTag.OS_MAS,
+  Windows: DocumentationTag.OS_WINDOWS,
+  Linux: DocumentationTag.OS_LINUX,
+  Experimental: DocumentationTag.STABILITY_EXPERIMENTAL,
+  Deprecated: DocumentationTag.STABILITY_DEPRECATED,
+  Readonly: DocumentationTag.AVAILABILITY_READONLY,
+};
+
+const ALLOWED_TAGS = Object.keys(tagMap) as (keyof typeof tagMap)[];
+
+export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
+  if (!tags) return [];
+
+  const parsedTags: (keyof typeof tagMap)[] = [];
+  const matcher = / _([^_]+)_/g;
+  let match: RegExpMatchArray | null;
+  while ((match = matcher.exec(tags))) {
+    expect(ALLOWED_TAGS).to.contain(
+      match[1],
+      `heading tags must be from the whitelist: ${JSON.stringify(ALLOWED_TAGS)}`,
+    );
+    parsedTags.push(match[1] as keyof typeof tagMap);
+  }
+
+  return parsedTags.map(value => {
+    if (tagMap[value]) return tagMap[value];
+
+    throw new Error(
+      `Impossible scenario detected, "${value}" is not an allowed tag but it got past the allowed tags check`,
+    );
+  });
+};
 
 export const findNextList = (tokens: Token[]) => {
   const start = tokens.findIndex(t => t.type === 'bullet_list_open');
@@ -237,6 +273,7 @@ export const rawTypeToTypeInformation = (
             name: typedKey.key,
             description: typedKey.description,
             required: typedKey.required,
+            additionalTags: typedKey.additionalTags,
             ...typedKey.type,
           }))
         : [],
@@ -271,6 +308,7 @@ export const rawTypeToTypeInformation = (
                   name: typedKey.key,
                   description: typedKey.description,
                   required: typedKey.required,
+                  additionalTags: typedKey.additionalTags,
                   ...typedKey.type,
                 }))
               : [],
@@ -514,6 +552,7 @@ type TypedKey = {
   type: TypeInformation;
   description: string;
   required: boolean;
+  additionalTags: DocumentationTag[];
 };
 
 type List = { items: ListItem[] };
@@ -608,6 +647,8 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
       / ?\(Optional\) ?/,
       'optionality should be defined with "(optional)", all lower case, no capital "O"',
     );
+    const tagMatcher = /.+?((?: _(?:[^_]+?)_)+)/g;
+    const tagMatch = tagMatcher.exec(rawType);
     const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '').replace(/_.+?_/g, '');
     const subTypedKeys = item.nestedList ? convertNestedListToTypedKeys(item.nestedList) : null;
     const type = rawTypeToTypeInformation(cleanedType.trim(), rawDescription, subTypedKeys);
@@ -617,6 +658,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
       key: keyToken.content,
       description: rawDescription.trim().replace(/^- ?/, ''),
       required: !isRootOptional,
+      additionalTags: tagMatch ? parseHeadingTags(tagMatch[1]) : [],
     });
   }
 
