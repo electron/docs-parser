@@ -323,11 +323,11 @@ export enum StripReturnTypeBehavior {
 export const extractStringEnum = (description: string): PossibleStringValue[] | null => {
   const possibleValues: PossibleStringValue[] = [];
 
-  const inlineValuesPattern = /(?:can be|values include) ((?:(?:`[a-zA-Z-]+`)(?:, ))*(?:`[a-zA-Z-]+`)?(?: (?:or|and) `[a-zA-Z-]+`)?)/i;
+  const inlineValuesPattern = /(?:can be|values include) ((?:(?:[`|'][a-zA-Z-]+[`|'])(?:(, | )?))*(?:(?:or|and) [`|'][a-zA-Z-]+[`|'])?)/i;
   const inlineMatch = inlineValuesPattern.exec(description);
   if (inlineMatch) {
     const valueString = inlineMatch[1];
-    const valuePattern = /`([a-zA-Z-]+)`/g;
+    const valuePattern = /[`|']([a-zA-Z-]+)[`|']/g;
     let value = valuePattern.exec(valueString);
 
     while (value) {
