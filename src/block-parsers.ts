@@ -79,7 +79,7 @@ export const _headingToMethodBlock = (
 ): MethodDocumentationBlock | null => {
   if (!heading) return null;
 
-  const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`( _(?:[^_]+?)_)*/g;
+  const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`((?: _[^_]+?_)*)/g;
   const methodStringMatch = methodStringRegexp.exec(heading.heading)!;
   methodStringRegexp.lastIndex = -1;
   expect(heading.heading).to.match(
@@ -135,7 +135,7 @@ export const _headingToMethodBlock = (
 };
 
 export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocumentationBlock => {
-  const propertyStringRegexp = /`(?:.+\.)?(.+?)`( _(?:[^_]+?)_)*/g;
+  const propertyStringRegexp = /`(?:.+\.)?(.+?)`((?: _[^_]+?_)*)/g;
   const propertyStringMatch = propertyStringRegexp.exec(heading.heading)!;
   propertyStringRegexp.lastIndex = -1;
   expect(heading.heading).to.match(
@@ -165,7 +165,7 @@ export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocume
 };
 
 export const _headingToEventBlock = (heading: HeadingContent): EventDocumentationBlock => {
-  const eventNameRegexp = /^Event: '(.+)'( _(?:[^_]+?)_)*/g;
+  const eventNameRegexp = /^Event: '(.+)'((?: _[^_]+?_)*)/g;
   const eventNameMatch = eventNameRegexp.exec(heading.heading)!;
   eventNameRegexp.lastIndex = -1;
   expect(heading.heading).to.match(eventNameRegexp, 'each event should have a quoted event name');
