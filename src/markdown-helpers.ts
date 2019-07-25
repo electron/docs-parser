@@ -327,7 +327,7 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
   const inlineMatch = inlineValuesPattern.exec(description);
   if (inlineMatch) {
     const valueString = inlineMatch[1];
-    const valuePattern = /`([a-zA-Z-]+)`/g;
+    const valuePattern = /[`|']([a-zA-Z-]+)[`|']/g;
     let value = valuePattern.exec(valueString);
 
     while (value) {
