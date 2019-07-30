@@ -12,6 +12,7 @@ import {
   extractReturnType,
   findContentAfterHeadingClose,
   StripReturnTypeBehavior,
+  consumeTypedKeysList,
 } from './markdown-helpers';
 import {
   MethodDocumentationBlock,
@@ -97,7 +98,7 @@ export const _headingToMethodBlock = (
       null,
       `Method ${heading.heading} has at least one parameter but no parameter type list`,
     );
-    parameters = convertListToTypedKeys(list).map(typedKey => ({
+    parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map(typedKey => ({
       name: typedKey.key,
       description: typedKey.description,
       required: typedKey.required,
@@ -183,8 +184,7 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
   ) {
     const list = findNextList(heading.content);
     if (list) {
-      const typedKeys = convertListToTypedKeys(list);
-      parameters = typedKeys.map(typedKey => ({
+      parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map(typedKey => ({
         name: typedKey.key,
         description: typedKey.description,
         ...typedKey.type,

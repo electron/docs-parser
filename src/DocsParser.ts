@@ -22,6 +22,7 @@ import {
   findContentInsideHeader,
   headingsAndContent,
   findConstructorHeader,
+  consumeTypedKeysList,
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
@@ -245,12 +246,10 @@ export class DocsParser {
 
     expect(list).to.not.equal(null, `Structure file ${filePath} has no property list`);
 
-    const typedKeys = convertListToTypedKeys(list!);
-
     return {
       type: 'Structure',
       ...baseInfos[0].container,
-      properties: typedKeys.map(typedKey => ({
+      properties: consumeTypedKeysList(convertListToTypedKeys(list!)).map(typedKey => ({
         name: typedKey.key,
         description: typedKey.description,
         required: typedKey.required,
