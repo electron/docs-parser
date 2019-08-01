@@ -208,7 +208,7 @@ export const getTopLevelGenericType = (typeString: string) => {
 export const rawTypeToTypeInformation = (
   rawType: string,
   relatedDescription: string,
-  subTypedKeys: TypedKey[] | null,
+  subTypedKeys: TypedKeyList | null,
 ): TypeInformation => {
   // Handle the edge case of "null"
   if (rawType === 'null' || rawType === '`null`') {
@@ -254,42 +254,45 @@ export const rawTypeToTypeInformation = (
     return {
       collection,
       type: 'Function',
-      parameters: subTypedKeys
-        ? subTypedKeys.map<MethodParameterDocumentation>(typedKey => ({
-            name: typedKey.key,
-            description: typedKey.description,
-            required: typedKey.required,
-            ...typedKey.type,
-          }))
-        : [],
+      parameters:
+        subTypedKeys && !subTypedKeys.consumed
+          ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
+              name: typedKey.key,
+              description: typedKey.description,
+              required: typedKey.required,
+              ...typedKey.type,
+            }))
+          : [],
       returns: null,
     };
   } else if (typeString === 'Object') {
     return {
       collection,
       type: 'Object',
-      properties: subTypedKeys
-        ? subTypedKeys.map<PropertyDocumentationBlock>(typedKey => ({
-            name: typedKey.key,
-            description: typedKey.description,
-            required: typedKey.required,
-            additionalTags: typedKey.additionalTags,
-            ...typedKey.type,
-          }))
-        : [],
+      properties:
+        subTypedKeys && !subTypedKeys.consumed
+          ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
+              name: typedKey.key,
+              description: typedKey.description,
+              required: typedKey.required,
+              additionalTags: typedKey.additionalTags,
+              ...typedKey.type,
+            }))
+          : [],
     };
   } else if (typeString === 'String') {
     return {
       collection,
       type: 'String',
-      possibleValues: subTypedKeys
-        ? subTypedKeys.map<PossibleStringValue>(typedKey => ({
-            value: typedKey.key,
-            description: typedKey.description,
-          }))
-        : relatedDescription
-        ? extractStringEnum(relatedDescription)
-        : null,
+      possibleValues:
+        subTypedKeys && !subTypedKeys.consumed
+          ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>(typedKey => ({
+              value: typedKey.key,
+              description: typedKey.description,
+            }))
+          : relatedDescription
+          ? extractStringEnum(relatedDescription)
+          : null,
     };
   }
 
@@ -303,15 +306,16 @@ export const rawTypeToTypeInformation = (
           return {
             ...info,
             type: 'Object',
-            properties: subTypedKeys
-              ? subTypedKeys.map<PropertyDocumentationBlock>(typedKey => ({
-                  name: typedKey.key,
-                  description: typedKey.description,
-                  required: typedKey.required,
-                  additionalTags: typedKey.additionalTags,
-                  ...typedKey.type,
-                }))
-              : [],
+            properties:
+              subTypedKeys && !subTypedKeys.consumed
+                ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
+                    name: typedKey.key,
+                    description: typedKey.description,
+                    required: typedKey.required,
+                    additionalTags: typedKey.additionalTags,
+                    ...typedKey.type,
+                  }))
+                : [],
           };
         }
         return info;
@@ -328,8 +332,8 @@ export const rawTypeToTypeInformation = (
         parameters:
           // If no param types are provided in the <A, B, C> syntax then we should fallback to the normal one
           genericProvidedParams.length === 0
-            ? subTypedKeys
-              ? subTypedKeys.map<MethodParameterDocumentation>(typedKey => ({
+            ? subTypedKeys && !subTypedKeys.consumed
+              ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
                   name: typedKey.key,
                   description: typedKey.description,
                   required: typedKey.required,
@@ -428,7 +432,7 @@ export const extractReturnType = (
   }
 
   const list = findNextList(tokens);
-  let typedKeys: null | TypedKey[] = null;
+  let typedKeys: null | TypedKeyList = null;
   if (list) {
     try {
       typedKeys = convertListToTypedKeys(tokens);
@@ -555,6 +559,11 @@ type TypedKey = {
   additionalTags: DocumentationTag[];
 };
 
+type TypedKeyList = {
+  keys: TypedKey[];
+  consumed: boolean;
+};
+
 type List = { items: ListItem[] };
 type ListItem = { tokens: Token[]; nestedList: List | null };
 
@@ -590,6 +599,24 @@ const getNestedList = (rawTokens: Token[]): List => {
   }
 
   return rootList;
+};
+
+const unconsumedTypedKeyList = <T extends TypedKey[] | null>(
+  keys: T,
+): T extends null ? null : TypedKeyList => {
+  return keys
+    ? {
+        consumed: false,
+        keys,
+      }
+    : (null as any);
+};
+
+export const consumeTypedKeysList = (list: TypedKeyList) => {
+  if (list.consumed)
+    throw new Error('Attempted to consume a typed keys list that has already been consumed');
+  list.consumed = true;
+  return list.keys;
 };
 
 const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
@@ -651,7 +678,11 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     const tagMatch = tagMatcher.exec(rawType);
     const cleanedType = rawType.replace(/ ?\(optional\) ?/i, '').replace(/_.+?_/g, '');
     const subTypedKeys = item.nestedList ? convertNestedListToTypedKeys(item.nestedList) : null;
-    const type = rawTypeToTypeInformation(cleanedType.trim(), rawDescription, subTypedKeys);
+    const type = rawTypeToTypeInformation(
+      cleanedType.trim(),
+      rawDescription,
+      unconsumedTypedKeyList(subTypedKeys),
+    );
 
     keys.push({
       type,
@@ -665,8 +696,8 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
   return keys;
 };
 
-export const convertListToTypedKeys = (listTokens: Token[]): TypedKey[] => {
+export const convertListToTypedKeys = (listTokens: Token[]): TypedKeyList => {
   const list = getNestedList(listTokens);
 
-  return convertNestedListToTypedKeys(list);
+  return unconsumedTypedKeyList(convertNestedListToTypedKeys(list));
 };
