@@ -41,16 +41,6 @@ if (!fs.pathExistsSync(packageJsonPath)) {
   process.exit(1);
 }
 
-const pj = require(packageJsonPath);
-if (pj.name !== 'electron') {
-  runner.fail(
-    chalk.red(
-      'The package.json file in the provided directory is not for Electron, please point this tool at a Electron repository',
-    ),
-  );
-  process.exit(1);
-}
-
 const resolvedOutDir =
   typeof outDir === 'string'
     ? path.isAbsolute(outDir)
