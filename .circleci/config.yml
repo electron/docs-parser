@@ -15,6 +15,7 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run: yarn prettier:check
+      - run: yarn build
       - run: yarn test
   release:
     docker:
