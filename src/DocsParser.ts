@@ -146,13 +146,15 @@ export class DocsParser {
           'HTMLElement documentation should not be considered a class',
         );
       }
-      let electronProcess = { main: true, renderer: true };
-      for (let tk of tokens) {
-        if (tk.type == 'inline' && tk.content.indexOf('Process') != -1) {
-          electronProcess = {
-            main: tk.content.indexOf('[Main]') != -1,
-            renderer: tk.content.indexOf('[Renderer]') != -1,
-          };
+      let electronProcess = { main: false, renderer: false };
+      for (const tk of tokens) {
+        if (tk.type === 'inline' && tk.content.indexOf('Process') === 0) {
+          var processTokens = tk.children.slice(2, tk.children.length - 1);
+          for (const ptk of processTokens) {
+            if (ptk.type !== 'text') continue;
+            if (ptk.content === 'Main') electronProcess.main = true;
+            if (ptk.content === 'Renderer') electronProcess.renderer = true;
+          }
           break;
         }
       }
