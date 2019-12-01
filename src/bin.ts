@@ -8,14 +8,20 @@ import pretty from 'pretty-ms';
 
 import { parseDocs } from '.';
 import chalk from 'chalk';
+import { DocsParserPlugin } from './DocsParserPlugin';
 
-const args = minimist(process.argv);
+const args = minimist(process.argv, {
+  string: ['dir', 'outDir', 'outFile'],
+  boolean: ['help'],
+});
 
 const { dir, outDir, help } = args;
 
 if (help) {
   console.info(
-    chalk.cyan('Usage: electron-docs-parser --dir ../electron [--out-dir ../electron-out]'),
+    chalk.cyan(
+      'Usage: electron-docs-parser --dir ../electron [--out-dir ../electron-out] [--out-file api.json]',
+    ),
   );
   process.exit(0);
 }
@@ -54,26 +60,47 @@ runner.text = chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolv
 
 const start = Date.now();
 
-fs.mkdirp(resolvedOutDir).then(() =>
-  parseDocs({
-    baseDirectory: resolvedDir,
-    moduleVersion: pj.version,
-  })
-    .then(data =>
-      fs.writeJson(path.resolve(resolvedOutDir, './electron-api.json'), data, {
-        spaces: 2,
-      }),
-    )
-    .then(() =>
-      runner.succeed(
-        `${chalk.green('Electron API generated in')} ${chalk.yellow(
-          `"${resolvedOutDir}"`,
-        )} took ${chalk.cyan(pretty(Date.now() - start))}`,
+const loadPlugins = () => {
+  if (!args.plugin) return [];
+
+  const plugins: DocsParserPlugin<any>[] = [];
+  const pluginArgs = (Array.isArray(args.plugin) ? args.plugin : [args.plugin]).map(String);
+  for (const pluginArg of pluginArgs) {
+    // Prevent path traversal
+    if (pluginArg.includes('..')) continue;
+
+    const plugin = require.resolve(path.resolve(__dirname, 'plugins', pluginArg));
+    const Class = require(plugin).default;
+    plugins.push(new Class(args[pluginArg] || {}));
+    // TODO: Resolve a non-built-in plugin
+  }
+  // console.log(args);
+  // process.exit(0);
+  return plugins;
+};
+
+fs.mkdirp(resolvedOutDir)
+  .then(() =>
+    parseDocs({
+      baseDirectory: resolvedDir,
+      moduleVersion: pj.version,
+      plugins: loadPlugins(),
+    })
+      .then(data =>
+        fs.writeJson(path.resolve(resolvedOutDir, `./${args.outFile || 'api'}.json`), data, {
+          spaces: 2,
+        }),
+      )
+      .then(() =>
+        runner.succeed(
+          `${chalk.green(
+            `${pj.productName || pj.name || 'Project'} API generated in`,
+          )} ${chalk.yellow(`"${resolvedOutDir}"`)} took ${chalk.cyan(pretty(Date.now() - start))}`,
+        ),
       ),
-    )
-    .catch(err => {
-      runner.fail();
-      console.error(err);
-      process.exit(1);
-    }),
-);
+  )
+  .catch(err => {
+    runner.fail();
+    console.error(err);
+    process.exit(1);
+  });

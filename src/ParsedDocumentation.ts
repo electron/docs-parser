@@ -72,16 +72,9 @@ export declare type BaseDocumentationContainer = {
   description: string;
   version: string;
   slug: string;
-  websiteUrl: string;
-  repoUrl: string;
-};
-export declare type ProcessBlock = {
-  main: boolean;
-  renderer: boolean;
 };
 export declare type ModuleDocumentationContainer = {
   type: 'Module';
-  process: ProcessBlock;
   methods: MethodDocumentationBlock[];
   events: EventDocumentationBlock[];
   properties: PropertyDocumentationBlock[];
@@ -107,7 +100,6 @@ export declare type StructureDocumentationContainer = {
 } & BaseDocumentationContainer;
 export declare type ClassDocumentationContainer = {
   type: 'Class';
-  process: ProcessBlock;
   constructorMethod: Pick<MethodDocumentationBlock, 'signature' | 'parameters'> | null;
   instanceName: string;
   staticMethods: MethodDocumentationBlock[];
@@ -121,7 +113,6 @@ export declare type ClassDocumentationContainer = {
 } & BaseDocumentationContainer;
 export declare type ElementDocumentationContainer = {
   type: 'Element';
-  process: ProcessBlock;
   constructorMethod?: undefined;
   methods: MethodDocumentationBlock[];
   events: EventDocumentationBlock[];

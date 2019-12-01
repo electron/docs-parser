@@ -23,9 +23,7 @@ import {
   headingsAndContent,
   findConstructorHeader,
   consumeTypedKeysList,
-  findProcess,
 } from './markdown-helpers';
-import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
 import {
   parseMethodBlocks,
@@ -33,14 +31,34 @@ import {
   parsePropertyBlocks,
   parseEventBlocks,
 } from './block-parsers';
+import { DocsParserPlugin } from './DocsParserPlugin';
 
 export class DocsParser {
   constructor(
-    private baseElectronDir: string,
+    private baseDir: string,
     private moduleVersion: string,
     private apiFiles: string[],
     private structureFiles: string[],
+    private plugins: DocsParserPlugin<any>[] = [],
   ) {}
+
+  private getRelatveDocsPath = (filePath: string) =>
+    path.relative(this.baseDir, filePath).split('.')[0];
+
+  private extendAPI = <
+    T extends
+      | ModuleDocumentationContainer
+      | ClassDocumentationContainer
+      | ElementDocumentationContainer
+  >(
+    api: T,
+    tokens: Token[],
+  ): T => {
+    for (const plugin of this.plugins) {
+      if (plugin.extendAPI) Object.assign(api, plugin.extendAPI(api, tokens) || {});
+    }
+    return api;
+  };
 
   private async parseBaseContainers(
     filePath: string,
@@ -53,7 +71,7 @@ export class DocsParser {
       isClass: boolean;
     }[]
   > {
-    const relativeDocsPath = path.relative(this.baseElectronDir, filePath).split('.')[0];
+    const relativeDocsPath = this.getRelatveDocsPath(filePath);
     const isStructure = relativeDocsPath.includes('structures');
     const headings = headingsAndContent(tokens);
     expect(headings).to.not.have.lengthOf(
@@ -105,11 +123,19 @@ export class DocsParser {
             extends: extendsMatch ? extendsMatch[1] : undefined,
             description,
             slug: path.basename(filePath, '.md'),
-            websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,
-            repoUrl: `${REPO_BASE_DOCS_URL(this.moduleVersion)}/${relativeDocsPath}.md`,
             version: this.moduleVersion,
           },
         });
+        const added = parsedContainers[parsedContainers.length - 1];
+        for (const plugin of this.plugins)
+          Object.assign(
+            added.container,
+            plugin.extendContainer
+              ? plugin.extendContainer(added.container, {
+                  relativeDocsPath,
+                })
+              : {},
+          );
       }
     }
 
@@ -147,7 +173,6 @@ export class DocsParser {
           'HTMLElement documentation should not be considered a class',
         );
       }
-      const electronProcess = findProcess(tokens);
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
@@ -161,60 +186,78 @@ export class DocsParser {
         const constructorMethod = _headingToMethodBlock(findConstructorHeader(tokens));
 
         // This is a class
-        parsed.push({
-          ...container,
-          type: 'Class',
-          process: electronProcess,
-          constructorMethod: constructorMethod
-            ? {
-                signature: constructorMethod.signature,
-                parameters: constructorMethod.parameters,
-              }
-            : null,
-          // ### Static Methods
-          staticMethods: parseMethodBlocks(findContentInsideHeader(tokens, 'Static Methods', 3)),
-          // ### Static Properties
-          staticProperties: parsePropertyBlocks(
-            findContentInsideHeader(tokens, 'Static Properties', 3),
+        parsed.push(
+          this.extendAPI(
+            {
+              ...container,
+              type: 'Class',
+              constructorMethod: constructorMethod
+                ? {
+                    signature: constructorMethod.signature,
+                    parameters: constructorMethod.parameters,
+                  }
+                : null,
+              // ### Static Methods
+              staticMethods: parseMethodBlocks(
+                findContentInsideHeader(tokens, 'Static Methods', 3),
+              ),
+              // ### Static Properties
+              staticProperties: parsePropertyBlocks(
+                findContentInsideHeader(tokens, 'Static Properties', 3),
+              ),
+              // ### Instance Methods
+              instanceMethods: parseMethodBlocks(
+                findContentInsideHeader(tokens, 'Instance Methods', 3),
+              ),
+              // ### Instance Properties
+              instanceProperties: parsePropertyBlocks(
+                findContentInsideHeader(tokens, 'Instance Properties', 3),
+              ),
+              // ### Instance Events
+              instanceEvents: parseEventBlocks(
+                findContentInsideHeader(tokens, 'Instance Events', 3),
+              ),
+              instanceName,
+            },
+            tokens,
           ),
-          // ### Instance Methods
-          instanceMethods: parseMethodBlocks(
-            findContentInsideHeader(tokens, 'Instance Methods', 3),
-          ),
-          // ### Instance Properties
-          instanceProperties: parsePropertyBlocks(
-            findContentInsideHeader(tokens, 'Instance Properties', 3),
-          ),
-          // ### Instance Events
-          instanceEvents: parseEventBlocks(findContentInsideHeader(tokens, 'Instance Events', 3)),
-          instanceName,
-        });
+        );
       } else {
         // This is a module
         if (isElement) {
-          parsed.push({
-            ...container,
-            type: 'Element',
-            process: electronProcess,
-            // ## Methods
-            methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
-            // ## Properties
-            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Tag Attributes', 2)),
-            // ## Events
-            events: parseEventBlocks(findContentInsideHeader(tokens, 'DOM Events', 2)),
-          });
+          parsed.push(
+            this.extendAPI(
+              {
+                ...container,
+                type: 'Element',
+                // ## Methods
+                methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
+                // ## Properties
+                properties: parsePropertyBlocks(
+                  findContentInsideHeader(tokens, 'Tag Attributes', 2),
+                ),
+                // ## Events
+                events: parseEventBlocks(findContentInsideHeader(tokens, 'DOM Events', 2)),
+              },
+              tokens,
+            ),
+          );
         } else {
-          parsed.push({
-            ...container,
-            type: 'Module',
-            process: electronProcess,
-            // ## Methods
-            methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
-            // ## Properties
-            properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
-            // ## Events
-            events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
-          });
+          parsed.push(
+            this.extendAPI(
+              {
+                ...container,
+                type: 'Module',
+                // ## Methods
+                methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
+                // ## Properties
+                properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
+                // ## Events
+                events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
+              },
+              tokens,
+            ),
+          );
         }
       }
     }

@@ -1,10 +1,12 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { DocsParser } from './DocsParser';
+import { DocsParserPlugin } from './DocsParserPlugin';
 
 type ParseOptions = {
   baseDirectory: string;
   moduleVersion: string;
+  plugins?: DocsParserPlugin<any>[];
 };
 
 export async function parseDocs(options: ParseOptions) {
@@ -15,6 +17,7 @@ export async function parseDocs(options: ParseOptions) {
     options.moduleVersion,
     await getAllMarkdownFiles(electronDocsPath),
     await getAllMarkdownFiles(path.resolve(electronDocsPath, 'structures')),
+    options.plugins || [],
   );
 
   return await parser.parse();
