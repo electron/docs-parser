@@ -33,7 +33,8 @@ export declare type DetailedType = (
   | DetailedStringType
   | {
       type: string;
-    }) & {
+    }
+) & {
   innerTypes?: TypeInformation[];
 };
 export declare type TypeInformation = {
@@ -140,7 +141,8 @@ export declare type ParsedDocumentationResult = (
   | ModuleDocumentationContainer
   | ClassDocumentationContainer
   | StructureDocumentationContainer
-  | ElementDocumentationContainer)[];
+  | ElementDocumentationContainer
+)[];
 
 export class ParsedDocumentation {
   private repr: ParsedDocumentationResult = [];
@@ -153,7 +155,8 @@ export class ParsedDocumentation {
     ...apiContainers: (
       | ModuleDocumentationContainer
       | ClassDocumentationContainer
-      | ElementDocumentationContainer)[]
+      | ElementDocumentationContainer
+    )[]
   ) {
     this.repr.push(...apiContainers);
   }

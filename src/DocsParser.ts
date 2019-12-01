@@ -123,7 +123,8 @@ export class DocsParser {
     const parsed: (
       | ModuleDocumentationContainer
       | ClassDocumentationContainer
-      | ElementDocumentationContainer)[] = [];
+      | ElementDocumentationContainer
+    )[] = [];
     const contents = await fs.readFile(filePath, 'utf8');
     const md = new MarkdownIt();
 
