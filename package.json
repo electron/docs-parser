@@ -39,8 +39,5 @@
     "minimist": "^1.2.0",
     "ora": "^4.0.3",
     "pretty-ms": "^5.1.0"
-  },
-  "resolutions": {
-    "fsevents": "2.1.2"
   }
 }
