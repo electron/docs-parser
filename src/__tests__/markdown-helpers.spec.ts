@@ -7,8 +7,17 @@ import {
   extractStringEnum,
   rawTypeToTypeInformation,
   parseHeadingTags,
+  findNextList,
+  getTopLevelGenericType,
+  findFirstHeading,
+  consumeTypedKeysList,
 } from '../markdown-helpers';
 import { DocumentationTag } from '../ParsedDocumentation';
+
+const getTokens = (md: string) => {
+  const markdown = new MarkdownIt();
+  return markdown.parse(md, {});
+};
 
 describe('markdown-helpers', () => {
   describe('parseHeadingTags', () => {
@@ -50,10 +59,8 @@ describe('markdown-helpers', () => {
         if (!markdownFixture.endsWith('.md')) continue;
 
         it(`should be correct for ${path.basename(markdownFixture, '.md')}`, () => {
-          const markdown = new MarkdownIt();
-          const tokens = markdown.parse(
+          const tokens = getTokens(
             fs.readFileSync(path.resolve(fixtureDir, markdownFixture), 'utf8'),
-            {},
           );
           expect(safelyJoinTokens(tokens)).toMatchSnapshot();
         });
@@ -246,6 +253,138 @@ describe('markdown-helpers', () => {
           null,
         ),
       ).toMatchSnapshot();
+    });
+  });
+
+  describe('findNextList()', () => {
+    it('should return null when no list is present in the tokens', () => {
+      expect(findNextList(getTokens('ABC `123`'))).toEqual(null);
+    });
+
+    it('should return null when the end of the list is not present in the tokens', () => {
+      const tokens = getTokens(' * 123');
+      expect(findNextList(tokens.slice(0, tokens.length - 2))).toEqual(null);
+    });
+
+    it('should return the entire list when their is a list present in the blocks', () => {
+      const list = findNextList(
+        getTokens(`
+what up
+
+* 123
+* 456
+
+hey lol
+    `),
+      );
+      expect(list).not.toEqual(null);
+      expect(safelyJoinTokens(list!)).toMatchInlineSnapshot(`
+                                                                        "* 123
+                                                                        * 456"
+                                                      `);
+    });
+
+    it('should return the entire list when their is a list present in the blocks with sublists', () => {
+      const list = findNextList(
+        getTokens(`
+what up
+
+* 123
+  * deeper
+  * and
+    * again
+* 456
+
+hey lol
+    `),
+      );
+      expect(list).not.toEqual(null);
+      expect(safelyJoinTokens(list!)).toMatchInlineSnapshot(`
+                                                                "* 123
+                                                                  * deeper
+                                                                  * and
+                                                                    * again
+                                                                * 456"
+                                                `);
+    });
+  });
+
+  describe('findFirstHeading()', () => {
+    it('should throw if there is no heading', () => {
+      expect(() => findFirstHeading(getTokens('`abc`'))).toThrowErrorMatchingInlineSnapshot(
+        `"expected to find a heading token but couldn't: expected -1 to not equal -1"`,
+      );
+    });
+
+    it('should throw if the heading is does not end', () => {
+      const tokens = getTokens('# qqq');
+      expect(() =>
+        findFirstHeading(tokens.slice(0, tokens.length - 2)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"expected [ Array(1) ] to have a length at least 2 but got 1"`,
+      );
+    });
+
+    it('should return the heading string token for the first heading', () => {
+      expect(
+        safelyJoinTokens([
+          findFirstHeading(
+            getTokens(`
+hey there
+
+# abc
+
+# def
+
+foo`),
+          ),
+        ]),
+      ).toMatchInlineSnapshot(`"abc"`);
+    });
+  });
+
+  describe('getTopLevelGenericType()', () => {
+    it('should return null if there is no generic in the type', () => {
+      expect(getTopLevelGenericType('Foo')).toEqual(null);
+    });
+
+    it('should return null if something ends like a generic but does not start like one', () => {
+      expect(getTopLevelGenericType('Foo>')).toEqual(null);
+    });
+
+    it('should extract the generic correctly', () => {
+      expect(getTopLevelGenericType('Foo<T>')).toStrictEqual({
+        genericType: 'T',
+        outerType: 'Foo',
+      });
+    });
+
+    it('should extract the generic correctly when the generic is itself generic', () => {
+      expect(getTopLevelGenericType('Foo<T<B>>')).toStrictEqual({
+        genericType: 'T<B>',
+        outerType: 'Foo',
+      });
+    });
+  });
+
+  describe('consumeTypedKeysList()', () => {
+    it('should return the keys property if the list is unconsumed', () => {
+      const list = {
+        consumed: false,
+        keys: [],
+      };
+      expect(consumeTypedKeysList(list)).toStrictEqual(list.keys);
+    });
+
+    it('should throw an error if the list has already been consumed', () => {
+      const list = {
+        consumed: false,
+        keys: [],
+      };
+      consumeTypedKeysList(list);
+      expect(() => consumeTypedKeysList(list)).toThrowErrorMatchingInlineSnapshot(
+        `"Attempted to consume a typed keys list that has already been consumed"`,
+      );
     });
   });
 });

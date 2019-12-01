@@ -41,6 +41,8 @@ if (!fs.pathExistsSync(packageJsonPath)) {
   process.exit(1);
 }
 
+const pj = require(packageJsonPath);
+
 const resolvedOutDir =
   typeof outDir === 'string'
     ? path.isAbsolute(outDir)
@@ -55,7 +57,7 @@ const start = Date.now();
 fs.mkdirp(resolvedOutDir).then(() =>
   parseDocs({
     baseDirectory: resolvedDir,
-    electronVersion: pj.version,
+    moduleVersion: pj.version,
   })
     .then(data =>
       fs.writeJson(path.resolve(resolvedOutDir, './electron-api.json'), data, {

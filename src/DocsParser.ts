@@ -36,7 +36,7 @@ import {
 export class DocsParser {
   constructor(
     private baseElectronDir: string,
-    private electronVersion: string,
+    private moduleVersion: string,
     private apiFiles: string[],
     private structureFiles: string[],
   ) {}
@@ -105,8 +105,8 @@ export class DocsParser {
             description,
             slug: path.basename(filePath, '.md'),
             websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,
-            repoUrl: `${REPO_BASE_DOCS_URL(this.electronVersion)}/${relativeDocsPath}.md`,
-            version: this.electronVersion,
+            repoUrl: `${REPO_BASE_DOCS_URL(this.moduleVersion)}/${relativeDocsPath}.md`,
+            version: this.moduleVersion,
           },
         });
       }

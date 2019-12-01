@@ -64,6 +64,7 @@ export const findNextList = (tokens: Token[]) => {
 export const findFirstHeading = (tokens: Token[]) => {
   const open = tokens.findIndex(token => token.type === 'heading_open');
   expect(open).to.not.equal(-1, "expected to find a heading token but couldn't");
+  expect(tokens).to.have.lengthOf.at.least(open + 2);
   expect(tokens[open + 2].type).to.equal('heading_close');
   return tokens[open + 1];
 };
@@ -190,6 +191,20 @@ export const getTopLevelOrderedTypes = (typeString: string) => {
   return safelySeparateTypeStringOn(typeString, ',');
 };
 
+/**
+ * @param typeString A type as a raw string
+ *
+ * @returns Either null or the isolated outer/generic types
+ *
+ * This method is used to extract the highest level generic from a type string.
+ * Examples:
+ *
+ * - `Foo` --> `null`
+ * - `Foo<T>` --> `{Foo, T}`
+ * - `Foo<T<B, C>>` --> `{Foo, T<B, C>}`
+ *
+ * The caller is responsible for recursively parsing the generic
+ */
 export const getTopLevelGenericType = (typeString: string) => {
   if (
     typeString[typeString.length - 1] !== '>' &&
