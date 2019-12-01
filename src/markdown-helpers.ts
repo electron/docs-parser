@@ -6,7 +6,6 @@ import {
   MethodParameterDocumentation,
   PossibleStringValue,
   DocumentationTag,
-  ProcessBlock,
 } from './ParsedDocumentation';
 
 const tagMap = {
@@ -716,20 +715,4 @@ export const convertListToTypedKeys = (listTokens: Token[]): TypedKeyList => {
   const list = getNestedList(listTokens);
 
   return unconsumedTypedKeyList(convertNestedListToTypedKeys(list));
-};
-
-export const findProcess = (tokens: Token[]): ProcessBlock => {
-  for (const tk of tokens) {
-    if (tk.type === 'inline' && tk.content.indexOf('Process') === 0) {
-      const ptks = tk.children.slice(2, tk.children.length - 1);
-      const procs: ProcessBlock = { main: false, renderer: false };
-      for (const ptk of ptks) {
-        if (ptk.type !== 'text') continue;
-        if (ptk.content === 'Main') procs.main = true;
-        if (ptk.content === 'Renderer') procs.renderer = true;
-      }
-      return procs;
-    }
-  }
-  return { main: true, renderer: true };
 };

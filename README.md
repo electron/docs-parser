@@ -9,7 +9,7 @@ yarn global add electron-docs-parser
 cd ~/projects/path/to/electron/repo
 electron-docs-parser --dir ./
 
-# You now have ./electron-api.json with the entire Electron API
+# You now have ./api.json with the entire Electron API
 ```
 
 ## How it Works
