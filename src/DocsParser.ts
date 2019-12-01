@@ -23,6 +23,7 @@ import {
   headingsAndContent,
   findConstructorHeader,
   consumeTypedKeysList,
+  findProcess,
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
@@ -146,18 +147,7 @@ export class DocsParser {
           'HTMLElement documentation should not be considered a class',
         );
       }
-      let electronProcess = { main: false, renderer: false };
-      for (const tk of tokens) {
-        if (tk.type === 'inline' && tk.content.indexOf('Process') === 0) {
-          var processTokens = tk.children.slice(2, tk.children.length - 1);
-          for (const ptk of processTokens) {
-            if (ptk.type !== 'text') continue;
-            if (ptk.content === 'Main') electronProcess.main = true;
-            if (ptk.content === 'Renderer') electronProcess.renderer = true;
-          }
-          break;
-        }
-      }
+      const electronProcess = findProcess(tokens);
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
