@@ -5,7 +5,7 @@
 ## Usage
 
 ```bash
-yarn global add electron-docs-parser
+yarn global add @electron/docs-parser
 cd ~/projects/path/to/electron/repo
 electron-docs-parser --dir ./
 
