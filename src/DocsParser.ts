@@ -146,6 +146,16 @@ export class DocsParser {
           'HTMLElement documentation should not be considered a class',
         );
       }
+      let electronProcess = { main: true, renderer: true };
+      for (let tk of tokens) {
+        if (tk.type == 'inline' && tk.content.indexOf('Process') != -1) {
+          electronProcess = {
+            main: tk.content.indexOf('[Main]') != -1,
+            renderer: tk.content.indexOf('[Renderer]') != -1,
+          };
+          break;
+        }
+      }
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
@@ -162,11 +172,7 @@ export class DocsParser {
         parsed.push({
           ...container,
           type: 'Class',
-          // FIXME: We should read the process correctly
-          process: {
-            main: true,
-            renderer: true,
-          },
+          process: electronProcess,
           constructorMethod: constructorMethod
             ? {
                 signature: constructorMethod.signature,
@@ -197,11 +203,7 @@ export class DocsParser {
           parsed.push({
             ...container,
             type: 'Element',
-            // FIXME: We should read the process correctly
-            process: {
-              main: true,
-              renderer: true,
-            },
+            process: electronProcess,
             // ## Methods
             methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
             // ## Properties
@@ -213,11 +215,7 @@ export class DocsParser {
           parsed.push({
             ...container,
             type: 'Module',
-            // FIXME: We should read the process correctly
-            process: {
-              main: true,
-              renderer: true,
-            },
+            process: electronProcess,
             // ## Methods
             methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
             // ## Properties
