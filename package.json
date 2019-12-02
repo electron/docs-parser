@@ -39,5 +39,22 @@
     "minimist": "^1.2.0",
     "ora": "^4.0.3",
     "pretty-ms": "^5.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/electron/docs-parser.git"
+  },
+  "keywords": [
+    "electron",
+    "docs",
+    "documentation",
+    "api",
+    "typescript",
+    ".d.ts",
+    "definitions"
+  ],
+  "bugs": {
+    "url": "https://github.com/electron/docs-parser/issues"
+  },
+  "homepage": "https://github.com/electron/docs-parser#readme"
 }
