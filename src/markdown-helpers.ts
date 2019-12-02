@@ -669,7 +669,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
       'Expected token token to have at least 1 child for typed key extraction',
     );
     const keyToken = targetToken.children[0];
-    expect(keyToken.type).to.equal('code_inline', 'Expected key token to be an inline code block');
+    expect(keyToken.type).to.equal('code_inline', `Expected key token to be an inline code block but instead encountered "${keyToken.content}"`);
     const typeAndDescriptionTokens = targetToken.children.slice(1);
     const joinedContent = safelyJoinTokens(typeAndDescriptionTokens);
 
