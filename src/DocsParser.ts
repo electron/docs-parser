@@ -23,6 +23,7 @@ import {
   headingsAndContent,
   findConstructorHeader,
   consumeTypedKeysList,
+  findProcess,
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
@@ -36,9 +37,10 @@ import {
 export class DocsParser {
   constructor(
     private baseElectronDir: string,
-    private electronVersion: string,
+    private moduleVersion: string,
     private apiFiles: string[],
     private structureFiles: string[],
+    private packageMode: 'single' | 'multi',
   ) {}
 
   private async parseBaseContainers(
@@ -105,8 +107,8 @@ export class DocsParser {
             description,
             slug: path.basename(filePath, '.md'),
             websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,
-            repoUrl: `${REPO_BASE_DOCS_URL(this.electronVersion)}/${relativeDocsPath}.md`,
-            version: this.electronVersion,
+            repoUrl: `${REPO_BASE_DOCS_URL(this.moduleVersion)}/${relativeDocsPath}.md`,
+            version: this.moduleVersion,
           },
         });
       }
@@ -123,13 +125,15 @@ export class DocsParser {
     const parsed: (
       | ModuleDocumentationContainer
       | ClassDocumentationContainer
-      | ElementDocumentationContainer)[] = [];
+      | ElementDocumentationContainer
+    )[] = [];
     const contents = await fs.readFile(filePath, 'utf8');
     const md = new MarkdownIt();
 
     const allTokens = md.parse(contents, {});
 
     const baseInfos = await this.parseBaseContainers(filePath, contents, allTokens);
+    let lastModule: ModuleDocumentationContainer | null = null;
     for (const { container, tokens, isClass } of baseInfos) {
       let isElement = false;
       if (container.name.endsWith('` Tag')) {
@@ -145,6 +149,7 @@ export class DocsParser {
           'HTMLElement documentation should not be considered a class',
         );
       }
+      const electronProcess = findProcess(tokens);
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
@@ -161,11 +166,7 @@ export class DocsParser {
         parsed.push({
           ...container,
           type: 'Class',
-          // FIXME: We should read the process correctly
-          process: {
-            main: true,
-            renderer: true,
-          },
+          process: electronProcess,
           constructorMethod: constructorMethod
             ? {
                 signature: constructorMethod.signature,
@@ -190,17 +191,18 @@ export class DocsParser {
           instanceEvents: parseEventBlocks(findContentInsideHeader(tokens, 'Instance Events', 3)),
           instanceName,
         });
+        // If we're inside a module, pop off the class and put it in the module as an exported class
+        // Only do this in "multi package" mode as when we are in a single package mode everything is exported at the
+        // top level.  In multi-package mode things are exported under each module so we need the nesting to be correct
+        if (this.packageMode === 'multi' && lastModule)
+          lastModule.exportedClasses.push(parsed.pop() as ClassDocumentationContainer);
       } else {
         // This is a module
         if (isElement) {
           parsed.push({
             ...container,
             type: 'Element',
-            // FIXME: We should read the process correctly
-            process: {
-              main: true,
-              renderer: true,
-            },
+            process: electronProcess,
             // ## Methods
             methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
             // ## Properties
@@ -212,18 +214,17 @@ export class DocsParser {
           parsed.push({
             ...container,
             type: 'Module',
-            // FIXME: We should read the process correctly
-            process: {
-              main: true,
-              renderer: true,
-            },
+            process: electronProcess,
             // ## Methods
             methods: parseMethodBlocks(findContentInsideHeader(tokens, 'Methods', 2)),
             // ## Properties
             properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
             // ## Events
             events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
+            // ## Class: MyClass
+            exportedClasses: [],
           });
+          lastModule = parsed[parsed.length - 1] as ModuleDocumentationContainer;
         }
       }
     }

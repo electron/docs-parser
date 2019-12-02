@@ -9,9 +9,17 @@ import pretty from 'pretty-ms';
 import { parseDocs } from '.';
 import chalk from 'chalk';
 
-const args = minimist(process.argv);
+const args = minimist(process.argv, {
+  default: {
+    packageMode: 'single',
+  },
+});
 
-const { dir, outDir, help } = args;
+const { dir, outDir, packageMode, help } = args;
+if (!['single', 'multi'].includes(packageMode)) {
+  console.error(chalk.red('packageMode must be one of "single" and "multi"'));
+  process.exit(1);
+}
 
 if (help) {
   console.info(
@@ -42,14 +50,6 @@ if (!fs.pathExistsSync(packageJsonPath)) {
 }
 
 const pj = require(packageJsonPath);
-if (pj.name !== 'electron') {
-  runner.fail(
-    chalk.red(
-      'The package.json file in the provided directory is not for Electron, please point this tool at a Electron repository',
-    ),
-  );
-  process.exit(1);
-}
 
 const resolvedOutDir =
   typeof outDir === 'string'
@@ -65,7 +65,8 @@ const start = Date.now();
 fs.mkdirp(resolvedOutDir).then(() =>
   parseDocs({
     baseDirectory: resolvedDir,
-    electronVersion: pj.version,
+    moduleVersion: pj.version,
+    packageMode,
   })
     .then(data =>
       fs.writeJson(path.resolve(resolvedOutDir, './electron-api.json'), data, {

@@ -33,7 +33,8 @@ export declare type DetailedType = (
   | DetailedStringType
   | {
       type: string;
-    }) & {
+    }
+) & {
   innerTypes?: TypeInformation[];
 };
 export declare type TypeInformation = {
@@ -74,12 +75,13 @@ export declare type BaseDocumentationContainer = {
   websiteUrl: string;
   repoUrl: string;
 };
+export declare type ProcessBlock = {
+  main: boolean;
+  renderer: boolean;
+};
 export declare type ModuleDocumentationContainer = {
   type: 'Module';
-  process: {
-    main: boolean;
-    renderer: boolean;
-  };
+  process: ProcessBlock;
   methods: MethodDocumentationBlock[];
   events: EventDocumentationBlock[];
   properties: PropertyDocumentationBlock[];
@@ -89,6 +91,7 @@ export declare type ModuleDocumentationContainer = {
   instanceProperties?: undefined;
   staticProperties?: undefined;
   staticMethods?: undefined;
+  exportedClasses: ClassDocumentationContainer[];
 } & BaseDocumentationContainer;
 export declare type StructureDocumentationContainer = {
   type: 'Structure';
@@ -105,10 +108,7 @@ export declare type StructureDocumentationContainer = {
 } & BaseDocumentationContainer;
 export declare type ClassDocumentationContainer = {
   type: 'Class';
-  process: {
-    main: boolean;
-    renderer: boolean;
-  };
+  process: ProcessBlock;
   constructorMethod: Pick<MethodDocumentationBlock, 'signature' | 'parameters'> | null;
   instanceName: string;
   staticMethods: MethodDocumentationBlock[];
@@ -122,10 +122,7 @@ export declare type ClassDocumentationContainer = {
 } & BaseDocumentationContainer;
 export declare type ElementDocumentationContainer = {
   type: 'Element';
-  process: {
-    main: boolean;
-    renderer: boolean;
-  };
+  process: ProcessBlock;
   constructorMethod?: undefined;
   methods: MethodDocumentationBlock[];
   events: EventDocumentationBlock[];
@@ -140,7 +137,8 @@ export declare type ParsedDocumentationResult = (
   | ModuleDocumentationContainer
   | ClassDocumentationContainer
   | StructureDocumentationContainer
-  | ElementDocumentationContainer)[];
+  | ElementDocumentationContainer
+)[];
 
 export class ParsedDocumentation {
   private repr: ParsedDocumentationResult = [];
@@ -153,7 +151,8 @@ export class ParsedDocumentation {
     ...apiContainers: (
       | ModuleDocumentationContainer
       | ClassDocumentationContainer
-      | ElementDocumentationContainer)[]
+      | ElementDocumentationContainer
+    )[]
   ) {
     this.repr.push(...apiContainers);
   }

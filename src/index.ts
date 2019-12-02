@@ -4,17 +4,20 @@ import { DocsParser } from './DocsParser';
 
 type ParseOptions = {
   baseDirectory: string;
-  electronVersion: string;
+  moduleVersion: string;
+  packageMode?: 'single' | 'multi';
 };
 
 export async function parseDocs(options: ParseOptions) {
+  const packageMode = options.packageMode || 'single';
   const electronDocsPath = path.resolve(options.baseDirectory, 'docs', 'api');
 
   const parser = new DocsParser(
     options.baseDirectory,
-    options.electronVersion,
+    options.moduleVersion,
     await getAllMarkdownFiles(electronDocsPath),
     await getAllMarkdownFiles(path.resolve(electronDocsPath, 'structures')),
+    packageMode,
   );
 
   return await parser.parse();
