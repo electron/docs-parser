@@ -40,6 +40,7 @@ export class DocsParser {
     private moduleVersion: string,
     private apiFiles: string[],
     private structureFiles: string[],
+    private packageMode: 'single' | 'multi',
   ) {}
 
   private async parseBaseContainers(
@@ -132,6 +133,7 @@ export class DocsParser {
     const allTokens = md.parse(contents, {});
 
     const baseInfos = await this.parseBaseContainers(filePath, contents, allTokens);
+    let lastModule: ModuleDocumentationContainer | null = null;
     for (const { container, tokens, isClass } of baseInfos) {
       let isElement = false;
       if (container.name.endsWith('` Tag')) {
@@ -189,6 +191,11 @@ export class DocsParser {
           instanceEvents: parseEventBlocks(findContentInsideHeader(tokens, 'Instance Events', 3)),
           instanceName,
         });
+        // If we're inside a module, pop off the class and put it in the module as an exported class
+        // Only do this in "multi package" mode as when we are in a single package mode everything is exported at the
+        // top level.  In multi-package mode things are exported under each module so we need the nesting to be correct
+        if (this.packageMode === 'multi' && lastModule)
+          lastModule.exportedClasses.push(parsed.pop() as ClassDocumentationContainer);
       } else {
         // This is a module
         if (isElement) {
@@ -214,7 +221,10 @@ export class DocsParser {
             properties: parsePropertyBlocks(findContentInsideHeader(tokens, 'Properties', 2)),
             // ## Events
             events: parseEventBlocks(findContentInsideHeader(tokens, 'Events', 2)),
+            // ## Class: MyClass
+            exportedClasses: [],
           });
+          lastModule = parsed[parsed.length - 1] as ModuleDocumentationContainer;
         }
       }
     }

@@ -91,6 +91,7 @@ export declare type ModuleDocumentationContainer = {
   instanceProperties?: undefined;
   staticProperties?: undefined;
   staticMethods?: undefined;
+  exportedClasses: ClassDocumentationContainer[];
 } & BaseDocumentationContainer;
 export declare type StructureDocumentationContainer = {
   type: 'Structure';
