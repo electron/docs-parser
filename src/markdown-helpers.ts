@@ -139,12 +139,22 @@ export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
   return groups;
 };
 
+const getConstructorHeaderInGroups = (groups: HeadingContent[]) => {
+  return groups.find(group => group.heading.startsWith('`new ') && group.level === 3);
+};
+
 export const findConstructorHeader = (tokens: Token[]) => {
   const groups = headingsAndContent(tokens);
-  const constructorHeader = groups.find(
-    group => group.heading.startsWith('`new ') && group.level === 3,
-  );
+  const constructorHeader = getConstructorHeaderInGroups(groups);
   return constructorHeader ? constructorHeader : null;
+};
+
+export const getContentBeforeConstructor = (tokens: Token[]) => {
+  const groups = headingsAndContent(tokens);
+  const constructorHeader = getConstructorHeaderInGroups(groups);
+  if (!constructorHeader) return [];
+
+  return groups.slice(0, groups.indexOf(constructorHeader));
 };
 
 export const findContentInsideHeader = (
@@ -461,13 +471,17 @@ export const extractReturnType = (
   };
 };
 
+export interface JoinTokenOptions {
+  parseCodeFences?: boolean;
+}
+
 // NOTE: This method obliterates code fences
-export const safelyJoinTokens = (tokens: Token[]) => {
+export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}) => {
   let joinedContent = '';
   let listLevel = -1;
   for (const tokenToCheck of tokens) {
     if (tokenToCheck.children !== null && tokenToCheck.type === 'inline') {
-      joinedContent += safelyJoinTokens(tokenToCheck.children);
+      joinedContent += safelyJoinTokens(tokenToCheck.children, options);
       continue;
     }
     expect(tokenToCheck.children).to.equal(
@@ -557,7 +571,11 @@ export const safelyJoinTokens = (tokens: Token[]) => {
         break;
       case 'paragraph_open':
       case 'blockquote_close':
+        break;
       case 'fence':
+        if (options.parseCodeFences) {
+          joinedContent += `\n\`\`\`\n${tokenToCheck.content}\`\`\`\n`;
+        }
         break;
       default:
         expect(false).to.equal(true, 'unreachable default switch case');
