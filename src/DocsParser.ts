@@ -24,6 +24,10 @@ import {
   findConstructorHeader,
   consumeTypedKeysList,
   findProcess,
+  getContentBeforeConstructor,
+  findContentAfterHeadingClose,
+  HeadingContent,
+  getContentBeforeFirstHeadingMatching,
 } from './markdown-helpers';
 import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
 import { extendError } from './helpers';
@@ -94,7 +98,26 @@ export class DocsParser {
         if (isStructure) {
           description = safelyJoinTokens(findContentAfterList(tokens));
         } else {
-          // TODO: Pull the top level Module / Class description
+          let groups: HeadingContent[];
+          if (isClass) {
+            groups = getContentBeforeConstructor(tokens);
+          } else {
+            // FIXME: Make it so that we don't need this magic FIXME for the electron breaking-changes document
+            groups = getContentBeforeFirstHeadingMatching(tokens, heading =>
+              ['Events', 'Methods', 'Properties', '`FIXME` comments'].includes(heading.trim()),
+            );
+          }
+          description = groups
+            .map((group, index) => {
+              const inner = safelyJoinTokens(findContentAfterHeadingClose(group.content), {
+                parseCodeFences: true,
+              });
+              if (index !== 0) {
+                return `### ${group.heading}\n\n${inner}`;
+              }
+              return inner;
+            })
+            .join('\n\n');
         }
 
         const extendsMatch = / Object extends `(.+?)`?$/.exec(heading.heading);

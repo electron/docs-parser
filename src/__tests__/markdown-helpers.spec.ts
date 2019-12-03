@@ -67,6 +67,28 @@ describe('markdown-helpers', () => {
         });
       }
     });
+
+    describe('with code fence support', () => {
+      it('should correctly insert the code fence', () => {
+        const tokens = getTokens(
+          `
+> a
+
+\`\`\`
+wat
+
+def fn():
+  pass
+
+# a
+\`\`\`
+
+> foo
+`,
+        );
+        expect(safelyJoinTokens(tokens, { parseCodeFences: true })).toMatchSnapshot();
+      });
+    });
   });
 
   describe('extractStringEnum()', () => {
