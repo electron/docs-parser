@@ -157,6 +157,18 @@ export const getContentBeforeConstructor = (tokens: Token[]) => {
   return groups.slice(0, groups.indexOf(constructorHeader));
 };
 
+export const getContentBeforeFirstHeadingMatching = (
+  tokens: Token[],
+  matcher: (heading: string) => boolean,
+) => {
+  const groups = headingsAndContent(tokens);
+
+  return groups.slice(
+    0,
+    groups.findIndex(g => matcher(g.heading)),
+  );
+};
+
 export const findContentInsideHeader = (
   tokens: Token[],
   expectedHeader: string,
