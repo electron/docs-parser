@@ -574,7 +574,7 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         break;
       case 'fence':
         if (options.parseCodeFences) {
-          joinedContent += `\n\`\`\`\n${tokenToCheck.content}\`\`\`\n`;
+          joinedContent += `\`\`\`\n${tokenToCheck.content}\`\`\`\n\n`;
         }
         break;
       default:

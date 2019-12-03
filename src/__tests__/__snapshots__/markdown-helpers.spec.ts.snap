@@ -334,3 +334,18 @@ exports[`markdown-helpers safelyJoinTokens snapshots should be correct for parag
 exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;
 
 exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-text-markers 1`] = `"Heya, this is **bold** and _italic_ and *italic* and ~~struck through~~"`;
+
+exports[`markdown-helpers safelyJoinTokens with code fence support should correctly insert the code fence 1`] = `
+"> a
+
+\`\`\`
+wat
+
+def fn():
+  pass
+
+# a
+\`\`\`
+
+> foo"
+`;
