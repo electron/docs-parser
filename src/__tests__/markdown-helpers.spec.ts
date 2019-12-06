@@ -5,6 +5,7 @@ import MarkdownIt from 'markdown-it';
 import {
   safelyJoinTokens,
   extractStringEnum,
+  extractReturnType,
   rawTypeToTypeInformation,
   parseHeadingTags,
   findNextList,
@@ -363,6 +364,79 @@ foo`),
           ),
         ]),
       ).toMatchInlineSnapshot(`"abc"`);
+    });
+  });
+
+  describe('extractReturnType()', () => {
+    it('should handle simple return types with descriptions', () => {
+      const intTokens = getTokens(`Returns \`Integer\` - The request id used for the request.`);
+      const intRet = extractReturnType(intTokens);
+      expect(intRet.parsedReturnType).toEqual({
+        collection: false,
+        type: 'Integer',
+      });
+
+      const stringTokens = getTokens(`Returns \`String\` - Returns the WebRTC IP Handling Policy.`);
+      const stringRet = extractReturnType(stringTokens);
+      expect(stringRet.parsedReturnType).toEqual({
+        collection: false,
+        possibleValues: null,
+        type: 'String',
+      });
+    });
+
+    it('should handle Promises with void inner types', () => {
+      const promiseTokens = getTokens(
+        `Returns \`Promise<void>\` - Indicates whether the snapshot has been created successfully.`,
+      );
+      const promiseRet = extractReturnType(promiseTokens);
+      expect(promiseRet.parsedReturnType).toEqual({
+        collection: false,
+        innerTypes: [
+          {
+            collection: false,
+            type: 'void',
+          },
+        ],
+        type: 'Promise',
+      });
+    });
+
+    it('should handle Promises with non-void inner types', () => {
+      const promiseTokens = getTokens(
+        `Returns \`Promise<Buffer>\` - Resolves with the generated PDF data.`,
+      );
+      const promiseRet = extractReturnType(promiseTokens);
+      expect(promiseRet.parsedReturnType).toEqual({
+        collection: false,
+        innerTypes: [
+          {
+            collection: false,
+            type: 'Buffer',
+          },
+        ],
+        type: 'Promise',
+      });
+    });
+
+    it('should handle custom return types', () => {
+      const customTokens = getTokens(
+        `Returns \`WebContents\` - A WebContents instance with the given ID.`,
+      );
+      const customRet = extractReturnType(customTokens);
+      expect(customRet.parsedReturnType).toEqual({
+        collection: false,
+        type: 'WebContents',
+      });
+    });
+
+    it('should handle return types with no descriptions', () => {
+      const printerTokens = getTokens(`Returns [\`PrinterInfo[]\`](structures/printer-info.md)`);
+      const printerRet = extractReturnType(printerTokens);
+      expect(printerRet.parsedReturnType).toEqual({
+        collection: true,
+        type: 'PrinterInfo',
+      });
     });
   });
 
