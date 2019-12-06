@@ -442,7 +442,7 @@ export const extractReturnType = (
   }
 
   const returnsWithNewLineMatch = description.match(
-    new RegExp(`${prefix} \`([^\`]+?)\`:?(\. |\n|$)`),
+    new RegExp(`${prefix} \`([^\`]+?)\`:?(\. |\.\n|\n|$)`),
   );
   const returnsWithHyphenMatch = description.match(new RegExp(`${prefix} \`([^\`]+?)\` - `));
   const returnsWithContinousSentence = description.match(new RegExp(`${prefix} \`([^\`]+?)\` `));
