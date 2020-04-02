@@ -103,7 +103,7 @@ def fn():
       expect(extractStringEnum('wassup')).toBe(null);
     });
 
-    describe('with single quotes', () => {
+    describe('with backticks', () => {
       it('should extract an enum of the format "can be x"', () => {
         const values = extractStringEnum('Can be `x`')!;
         expect(values).not.toBe(null);
@@ -160,9 +160,18 @@ def fn():
         expect(values[1].value).toBe('b');
         expect(values[2].value).toBe('c');
       });
+
+      it.only('should extract an enum with underscores in the values', () => {
+        const values = extractStringEnum('Values includes `a`, `b_c` and `d`')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(3);
+        expect(values[0].value).toBe('a');
+        expect(values[1].value).toBe('b_c');
+        expect(values[2].value).toBe('d');
+      });
     });
 
-    describe('with backticks', () => {
+    describe('with single quotes', () => {
       it('should extract an enum of the format "can be x"', () => {
         const values = extractStringEnum(`Can be 'x'`)!;
         expect(values).not.toBe(null);
