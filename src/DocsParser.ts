@@ -90,8 +90,8 @@ export class DocsParser {
           // Remove " Object"
           name = name.replace(/ Object(?: extends `.+?`)?$/, '');
         } else if (isClass) {
-          // Remove "Class: "
-          name = name.substr(7);
+          // Remove "Class: " and " extends `yyy`"
+          name = name.substr(7).replace(/ extends `.+?`$/, '');
         }
 
         let description = '';
@@ -120,7 +120,8 @@ export class DocsParser {
             .join('\n\n');
         }
 
-        const extendsMatch = / Object extends `(.+?)`?$/.exec(heading.heading);
+        const extendsPattern = isClass ? / extends `(.+?)`?$/ : / Object extends `(.+?)`?$/;
+        const extendsMatch = extendsPattern.exec(heading.heading);
         parsedContainers.push({
           isClass,
           tokens: heading.content,
