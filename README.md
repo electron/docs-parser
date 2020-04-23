@@ -1,6 +1,6 @@
 # Electron Docs Parser
 
-> Generate a structured JSON API file from Electrons free-form documentation
+> Generate a structured JSON API file from Electron's free-form documentation
 
 ## Usage
 
@@ -23,11 +23,14 @@ For more information you should start your code dive in
 [`DocsParser.ts`](src/DocsParser.ts) and then probably
 [`block-parsers.ts`](src/block-parsers.ts).
 
-## Typescript Definitions
+## TypeScript Definitions
 
-The output of this module is used to generate Typescript definitions for
-the Electron API.  This module itself is not used to generate those
-definitions.
+The output of this module is used to generate TypeScript definitions for
+the Electron API. This module itself is not used to generate those
+definitions - [@electron/typescript-definitions](https://github.com/electron/typescript-definitions) is.
+
+Further, if you're looking for tooling that automatically surfaces
+typings in GitHub PRs, you're probably looking for [Archaeologist](https://github.com/electron/archaeologist).
 
 ## License
 
