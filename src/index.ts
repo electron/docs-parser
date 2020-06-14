@@ -4,19 +4,36 @@ import { DocsParser } from './DocsParser';
 
 type ParseOptions = {
   baseDirectory: string;
+  useReadme: boolean;
   moduleVersion: string;
   packageMode?: 'single' | 'multi';
 };
 
 export async function parseDocs(options: ParseOptions) {
   const packageMode = options.packageMode || 'single';
-  const electronDocsPath = path.resolve(options.baseDirectory, 'docs', 'api');
+
+  const apiDocsPath = options.baseDirectory || path.resolve('./', 'docs', 'api');
+  const structuresPath = path.resolve(apiDocsPath, 'structures');
+
+  let structures: string[] = [];
+  let apis: string[] = [];
+
+  if (options.useReadme) {
+    const readmePath = path.resolve(options.baseDirectory, 'README.md');
+    if (!fs.existsSync(readmePath)) {
+      throw new Error('README.md file not found');
+    }
+    apis = [readmePath];
+  } else {
+    structures = await getAllMarkdownFiles(structuresPath);
+    apis = await getAllMarkdownFiles(apiDocsPath);
+  }
 
   const parser = new DocsParser(
     options.baseDirectory,
     options.moduleVersion,
-    await getAllMarkdownFiles(electronDocsPath),
-    await getAllMarkdownFiles(path.resolve(electronDocsPath, 'structures')),
+    apis,
+    structures,
     packageMode,
   );
 

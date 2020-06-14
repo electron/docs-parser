@@ -15,7 +15,7 @@ const args = minimist(process.argv, {
   },
 });
 
-const { dir, outDir, packageMode, help } = args;
+const { dir, outDir, useReadme, packageMode, help } = args;
 if (!['single', 'multi'].includes(packageMode)) {
   console.error(chalk.red('packageMode must be one of "single" and "multi"'));
   process.exit(1);
@@ -64,6 +64,7 @@ const start = Date.now();
 
 fs.mkdirp(resolvedOutDir).then(() =>
   parseDocs({
+    useReadme: useReadme ? true : false,
     baseDirectory: resolvedDir,
     moduleVersion: pj.version,
     packageMode,
