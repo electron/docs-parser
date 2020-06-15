@@ -12,6 +12,13 @@ electron-docs-parser --dir ./
 # You now have ./electron-api.json with the entire Electron API
 ```
 
+Options:
+* `--useReadme` - Assume all documentation is in the module's base `README.md` file 
+* `--dir` - The base directory where documentation is located.
+  * API documentation must be located in `/docs/api` within the specified base directory.
+  * API structures documentation must be located in `/docs/api/structures` within the specified base directory.
+* `--packageMode` - Can be `single` or `multi`; default `single`. Specifying `multi` allows exporting multiple packages from an API instead of multiple modules from a single package.
+
 ## How it Works
 
 We generate a markdown AST for every documentation file and search for
