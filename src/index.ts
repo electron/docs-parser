@@ -12,7 +12,7 @@ type ParseOptions = {
 export async function parseDocs(options: ParseOptions) {
   const packageMode = options.packageMode || 'single';
 
-  const apiDocsPath = path.resolve('./', 'docs', 'api');
+  const apiDocsPath = path.resolve(options.baseDirectory, 'docs', 'api');
   const structuresPath = path.resolve(apiDocsPath, 'structures');
 
   let structures: string[] = [];
