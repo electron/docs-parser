@@ -58,7 +58,12 @@ export class DocsParser {
       isClass: boolean;
     }[]
   > {
-    const relativeDocsPath = path.relative(this.baseElectronDir, filePath).split('.')[0];
+    // Ensure POSIX-style path separators regardless of OS
+    const relativeDocsPath = path
+      .relative(this.baseElectronDir, filePath)
+      .split(path.sep)
+      .join(path.posix.sep)
+      .split('.')[0];
     const isStructure = relativeDocsPath.includes('structures');
     const headings = headingsAndContent(tokens);
     expect(headings).to.not.have.lengthOf(
