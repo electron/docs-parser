@@ -13,6 +13,7 @@ import {
   findContentAfterHeadingClose,
   StripReturnTypeBehavior,
   consumeTypedKeysList,
+  slugifyHeading,
 } from './markdown-helpers';
 import {
   MethodDocumentationBlock,
@@ -130,6 +131,7 @@ export const _headingToMethodBlock = (
     parameters,
     returns: parsedReturnType,
     additionalTags: parseHeadingTags(headingTags),
+    urlFragment: `#${slugifyHeading(heading.heading)}`,
   };
 };
 
@@ -159,6 +161,7 @@ export const _headingToPropertyBlock = (heading: HeadingContent): PropertyDocume
     description: parsedDescription,
     required: !/\(optional\)/i.test(parsedDescription),
     additionalTags: parseHeadingTags(headingTags),
+    urlFragment: `#${slugifyHeading(heading.heading)}`,
     ...parsedReturnType!,
   };
 };
@@ -196,6 +199,7 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
     description,
     parameters,
     additionalTags: parseHeadingTags(headingTags),
+    urlFragment: `#${slugifyHeading(heading.heading)}`,
   };
 };
 

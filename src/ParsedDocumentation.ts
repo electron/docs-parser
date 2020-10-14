@@ -54,6 +54,7 @@ export declare type DocumentationBlock = {
   name: string;
   description: string;
   additionalTags: DocumentationTag[];
+  urlFragment?: string;
 };
 export declare type MethodDocumentationBlock = DocumentationBlock & {
   signature: string;

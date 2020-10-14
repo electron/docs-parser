@@ -766,3 +766,10 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
   }
   return { main: true, renderer: true };
 };
+
+export const slugifyHeading = (heading: string): string => {
+  return heading
+    .replace(/[^A-Za-z0-9 \-]/g, '')
+    .replace(/ /g, '-')
+    .toLowerCase();
+};
