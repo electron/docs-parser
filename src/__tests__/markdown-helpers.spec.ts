@@ -161,7 +161,7 @@ def fn():
         expect(values[2].value).toBe('c');
       });
 
-      it.only('should extract an enum with underscores in the values', () => {
+      it('should extract an enum with underscores in the values', () => {
         const values = extractStringEnum('Values includes `a`, `b_c` and `d`')!;
         expect(values).not.toBe(null);
         expect(values).toHaveLength(3);
