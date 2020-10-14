@@ -58,7 +58,12 @@ export class DocsParser {
       isClass: boolean;
     }[]
   > {
-    const relativeDocsPath = path.relative(this.baseElectronDir, filePath).split('.')[0];
+    // Ensure POSIX-style path separators regardless of OS
+    const relativeDocsPath = path
+      .relative(this.baseElectronDir, filePath)
+      .split(path.sep)
+      .join(path.posix.sep)
+      .split('.')[0];
     const isStructure = relativeDocsPath.includes('structures');
     const headings = headingsAndContent(tokens);
     expect(headings).to.not.have.lengthOf(
@@ -90,8 +95,8 @@ export class DocsParser {
           // Remove " Object"
           name = name.replace(/ Object(?: extends `.+?`)?$/, '');
         } else if (isClass) {
-          // Remove "Class: "
-          name = name.substr(7);
+          // Remove "Class: " and " extends `yyy`"
+          name = name.substr(7).replace(/ extends `.+?`$/, '');
         }
 
         let description = '';
@@ -120,7 +125,8 @@ export class DocsParser {
             .join('\n\n');
         }
 
-        const extendsMatch = / Object extends `(.+?)`?$/.exec(heading.heading);
+        const extendsPattern = isClass ? / extends `(.+?)`?$/ : / Object extends `(.+?)`?$/;
+        const extendsMatch = extendsPattern.exec(heading.heading);
         parsedContainers.push({
           isClass,
           tokens: heading.content,
