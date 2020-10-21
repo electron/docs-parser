@@ -13,6 +13,7 @@ import {
   findFirstHeading,
   consumeTypedKeysList,
   findProcess,
+  slugifyHeading,
 } from '../markdown-helpers';
 import { DocumentationTag } from '../ParsedDocumentation';
 
@@ -537,6 +538,15 @@ foo`),
       var proc = findProcess([]);
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(true);
+    });
+  });
+
+  describe('slugifyHeading', () => {
+    it('should correctly slugify a complex heading', () => {
+      const heading =
+        '`systemPreferences.isHighContrastColorScheme()` _macOS_ _Windows_ _Deprecated_';
+      const slugified = 'systempreferencesishighcontrastcolorscheme-macos-windows-deprecated';
+      expect(slugifyHeading(heading)).toBe(slugified);
     });
   });
 });
