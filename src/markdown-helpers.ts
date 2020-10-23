@@ -194,9 +194,11 @@ export const safelySeparateTypeStringOn = (typeString: string, targetChar: strin
       current += char;
       switch (char) {
         case '<':
+        case '{':
           depth++;
           break;
         case '>':
+        case '}':
           depth--;
           break;
       }
