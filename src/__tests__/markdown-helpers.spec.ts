@@ -290,8 +290,10 @@ def fn():
     });
 
     it('should allow commas in object types', () => {
-      expect(rawTypeToTypeInformation('Function<{a: string, b: string}>', '', null)).toMatchSnapshot();
-    })
+      expect(
+        rawTypeToTypeInformation('Function<{a: string, b: string}>', '', null),
+      ).toMatchSnapshot();
+    });
   });
 
   describe('findNextList()', () => {
