@@ -1,5 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`markdown-helpers rawTypeToTypeInformation() should allow commas in object types 1`] = `
+Object {
+  "collection": false,
+  "parameters": Array [],
+  "returns": Object {
+    "collection": false,
+    "type": "{a: string, b: string}",
+  },
+  "type": "Function",
+}
+`;
+
 exports[`markdown-helpers rawTypeToTypeInformation() should map a Promise types correctly 1`] = `
 Object {
   "collection": false,

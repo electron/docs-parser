@@ -288,6 +288,10 @@ def fn():
         ),
       ).toMatchSnapshot();
     });
+
+    it('should allow commas in object types', () => {
+      expect(rawTypeToTypeInformation('Function<{a: string, b: string}>', '', null)).toMatchSnapshot();
+    })
   });
 
   describe('findNextList()', () => {
