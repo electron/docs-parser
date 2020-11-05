@@ -696,16 +696,16 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     // We take the middle token as it is the thing enclosed in the paragraph
     const targetToken = item.tokens[1];
     // Need at least a key and a type
-    expect(targetToken.children.length).to.be.at.least(
+    expect(targetToken.children!.length).to.be.at.least(
       1,
       'Expected token token to have at least 1 child for typed key extraction',
     );
-    const keyToken = targetToken.children[0];
+    const keyToken = targetToken.children![0];
     expect(keyToken.type).to.equal(
       'code_inline',
       `Expected key token to be an inline code block but instead encountered "${keyToken.content}"`,
     );
-    const typeAndDescriptionTokens = targetToken.children.slice(1);
+    const typeAndDescriptionTokens = targetToken.children!.slice(1);
     const joinedContent = safelyJoinTokens(typeAndDescriptionTokens);
 
     let rawType = 'String';
@@ -756,7 +756,7 @@ export const convertListToTypedKeys = (listTokens: Token[]): TypedKeyList => {
 export const findProcess = (tokens: Token[]): ProcessBlock => {
   for (const tk of tokens) {
     if (tk.type === 'inline' && tk.content.indexOf('Process') === 0) {
-      const ptks = tk.children.slice(2, tk.children.length - 1);
+      const ptks = tk.children!.slice(2, tk.children!.length - 1);
       const procs: ProcessBlock = { main: false, renderer: false };
       for (const ptk of ptks) {
         if (ptk.type !== 'text') continue;
