@@ -111,7 +111,7 @@ export const _headingToMethodBlock = (
     for (let i = 0; i < parameters.length; i++) {
       expect(parameters[i].required).to.equal(
         !guessedParams[i].optional,
-        `the optionalality of a paramater in the signature should match the documented optionality in the parameter description: "${methodString}${methodSignature}", while parsing parameter: "${parameters[i].name}"`,
+        `the optionality of a parameter in the signature should match the documented optionality in the parameter description: "${methodString}${methodSignature}", while parsing parameter: "${parameters[i].name}"`,
       );
     }
   }
