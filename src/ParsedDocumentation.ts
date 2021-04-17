@@ -57,6 +57,7 @@ export declare type DocumentationBlock = {
   urlFragment?: string;
 };
 export declare type MethodDocumentationBlock = DocumentationBlock & {
+  rawGenerics?: string;
   signature: string;
   parameters: MethodParameterDocumentation[];
   returns: TypeInformation | null;

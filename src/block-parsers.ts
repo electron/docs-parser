@@ -81,14 +81,25 @@ export const _headingToMethodBlock = (
 ): MethodDocumentationBlock | null => {
   if (!heading) return null;
 
+  const methodStringWithGenericRegexp = /`(?:.+\.)?(.+?)(<.+>)(\(.*?\))`((?: _[^_]+?_)*)/g;
   const methodStringRegexp = /`(?:.+\.)?(.+?)(\(.*?\))`((?: _[^_]+?_)*)/g;
+  const methodStringWithGenericMatch = methodStringWithGenericRegexp.exec(heading.heading);
   const methodStringMatch = methodStringRegexp.exec(heading.heading)!;
   methodStringRegexp.lastIndex = -1;
+  methodStringWithGenericRegexp.lastIndex = -1;
   expect(heading.heading).to.match(
     methodStringRegexp,
     'each method should have a code blocked method name',
   );
-  const [, methodString, methodSignature, headingTags] = methodStringMatch;
+  let methodString: string;
+  let methodGenerics = '';
+  let methodSignature: string;
+  let headingTags: string;
+  if (methodStringWithGenericMatch) {
+    [, methodString, methodGenerics, methodSignature, headingTags] = methodStringWithGenericMatch;
+  } else {
+    [, methodString, methodSignature, headingTags] = methodStringMatch;
+  }
 
   let parameters: MethodDocumentationBlock['parameters'] = [];
   if (methodSignature !== '()') {
@@ -128,6 +139,7 @@ export const _headingToMethodBlock = (
     name: methodString,
     signature: methodSignature,
     description: parsedDescription,
+    rawGenerics: methodGenerics || undefined,
     parameters,
     returns: parsedReturnType,
     additionalTags: parseHeadingTags(headingTags),
