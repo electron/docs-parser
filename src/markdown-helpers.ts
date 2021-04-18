@@ -755,9 +755,16 @@ export const convertListToTypedKeys = (listTokens: Token[]): TypedKeyList => {
 
 export const findProcess = (tokens: Token[]): ProcessBlock => {
   for (const tk of tokens) {
-    if (tk.type === 'inline' && tk.content.indexOf('Process') === 0) {
+    if (
+      tk.type === 'inline' &&
+      (tk.content.startsWith('Process') || tk.content.startsWith('Exported in'))
+    ) {
       const ptks = tk.children!.slice(2, tk.children!.length - 1);
-      const procs: ProcessBlock = { main: false, renderer: false };
+      const procs: ProcessBlock = {
+        main: false,
+        renderer: false,
+        exported: tk.content.startsWith('Exported in'),
+      };
       for (const ptk of ptks) {
         if (ptk.type !== 'text') continue;
         if (ptk.content === 'Main') procs.main = true;
@@ -766,7 +773,7 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
       return procs;
     }
   }
-  return { main: true, renderer: true };
+  return { main: true, renderer: true, exported: false };
 };
 
 export const slugifyHeading = (heading: string): string => {

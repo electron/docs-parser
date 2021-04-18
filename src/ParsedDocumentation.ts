@@ -80,6 +80,7 @@ export declare type BaseDocumentationContainer = {
 export declare type ProcessBlock = {
   main: boolean;
   renderer: boolean;
+  exported: boolean;
 };
 export declare type ModuleDocumentationContainer = {
   type: 'Module';
