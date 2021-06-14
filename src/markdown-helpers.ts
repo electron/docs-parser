@@ -763,7 +763,9 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
       const procs: ProcessBlock = {
         main: false,
         renderer: false,
-        exported: tk.content.startsWith('Exported in'),
+        exported: !ptks.some(
+          ptk => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
+        ),
       };
       for (const ptk of ptks) {
         if (ptk.type !== 'text') continue;
