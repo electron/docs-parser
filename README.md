@@ -23,7 +23,7 @@ Options:
 
 We generate a markdown AST for every documentation file and search for
 "Modules", "Classes" and "Structures".  We then use the well documented
-and enforced [Electron docs style guide](https://github.com/electron/electron/blob/master/docs/styleguide.md) to pull the required information
+and enforced [Electron docs style guide](https://github.com/electron/electron/blob/main/docs/styleguide.md) to pull the required information
 about methods, properties and events from the generated AST.
 
 For more information you should start your code dive in
