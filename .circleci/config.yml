@@ -2,8 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/node:10.15
-    steps:
+      - image: circleci/node:14
       - checkout
       - restore_cache:
           keys:
@@ -19,7 +18,7 @@ jobs:
       - run: npx yarn test
   release:
     docker:
-      - image: circleci/node:10.15
+      - image: circleci/node:14
     steps:
       - checkout
       - restore_cache:
