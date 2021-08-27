@@ -516,6 +516,8 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         'paragraph_close',
         'bullet_list_open',
         'bullet_list_close',
+        'ordered_list_open',
+        'ordered_list_close',
         'list_item_open',
         'list_item_close',
         'em_open',
