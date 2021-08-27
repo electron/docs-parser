@@ -572,6 +572,7 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         break;
       }
       case 'bullet_list_open':
+      case 'ordered_list_open':
         // If we are opening a new list inside a list we need to strip a new line from the last close paragraph
         if (listLevel > -1) {
           joinedContent = joinedContent.slice(0, joinedContent.length - 1);
@@ -579,6 +580,7 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         listLevel += 1;
         break;
       case 'bullet_list_close':
+      case 'ordered_list_close':
         // On close of a nested list, add an extra new line
         if (listLevel > -1) {
           joinedContent += '\n';
