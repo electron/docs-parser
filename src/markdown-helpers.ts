@@ -320,7 +320,7 @@ export const rawTypeToTypeInformation = (
             }))
           : [],
     };
-  } else if (typeString === 'String') {
+  } else if (typeString === 'String' || typeString === 'string') {
     return {
       collection,
       type: 'String',
