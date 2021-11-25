@@ -2,17 +2,22 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { DocsParser } from './DocsParser';
 
-type ParseOptions = {
+export type ParseOptions = {
   baseDirectory: string;
   useReadme: boolean;
   moduleVersion: string;
   packageMode?: 'single' | 'multi';
+  fileList?: [string];
+  apiDir: string;
+  websiteURL?: string;
+  repoURL?: string;
 };
 
 export async function parseDocs(options: ParseOptions) {
   const packageMode = options.packageMode || 'single';
 
-  const apiDocsPath = path.resolve(options.baseDirectory, 'docs', 'api');
+  const apiDocsPath = path.resolve(options.baseDirectory, options.apiDir);
+
   const structuresPath = path.resolve(apiDocsPath, 'structures');
 
   let structures: string[] = [];
@@ -25,8 +30,8 @@ export async function parseDocs(options: ParseOptions) {
     }
     apis = [readmePath];
   } else {
-    structures = await getAllMarkdownFiles(structuresPath);
-    apis = await getAllMarkdownFiles(apiDocsPath);
+    structures = await getAllMarkdownFiles(structuresPath, options);
+    apis = await getAllMarkdownFiles(apiDocsPath, options);
   }
 
   const parser = new DocsParser(
@@ -35,19 +40,25 @@ export async function parseDocs(options: ParseOptions) {
     apis,
     structures,
     packageMode,
+    options.websiteURL,
+    options.repoURL,
   );
 
   return await parser.parse();
 }
 
-async function getAllMarkdownFiles(inDir: string) {
+async function getAllMarkdownFiles(inDir: string, options: ParseOptions) {
   const allMarkdownFiles: string[] = [];
 
   const children = await fs.readdir(inDir);
   for (const child of children) {
     const childPath = path.resolve(inDir, child);
     const stats = await fs.stat(childPath);
-    if (path.extname(childPath) === '.md' && stats.isFile()) {
+    if (
+      path.extname(childPath) === '.md' &&
+      stats.isFile() &&
+      (options.fileList == undefined || options.fileList.includes(path.basename(childPath)))
+    ) {
       allMarkdownFiles.push(childPath);
     }
   }

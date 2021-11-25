@@ -45,6 +45,8 @@ export class DocsParser {
     private apiFiles: string[],
     private structureFiles: string[],
     private packageMode: 'single' | 'multi',
+    private websiteURL?: string,
+    private repoURL?: string,
   ) {}
 
   private async parseBaseContainers(
@@ -127,6 +129,8 @@ export class DocsParser {
 
         const extendsPattern = isClass ? / extends `(.+?)`?$/ : / Object extends `(.+?)`?$/;
         const extendsMatch = extendsPattern.exec(heading.heading);
+        const websiteBasePath = this.websiteURL || WEBSITE_BASE_DOCS_URL;
+        const repoBasePath = this.repoURL || REPO_BASE_DOCS_URL(this.moduleVersion);
         parsedContainers.push({
           isClass,
           tokens: heading.content,
@@ -135,8 +139,8 @@ export class DocsParser {
             extends: extendsMatch ? extendsMatch[1] : undefined,
             description,
             slug: path.basename(filePath, '.md'),
-            websiteUrl: `${WEBSITE_BASE_DOCS_URL}/${relativeDocsPath}`,
-            repoUrl: `${REPO_BASE_DOCS_URL(this.moduleVersion)}/${relativeDocsPath}.md`,
+            websiteUrl: `${websiteBasePath}/${relativeDocsPath}`,
+            repoUrl: `${repoBasePath}/${relativeDocsPath}.md`,
             version: this.moduleVersion,
           },
         });

@@ -6,16 +6,30 @@ import ora from 'ora';
 import * as path from 'path';
 import pretty from 'pretty-ms';
 
-import { parseDocs } from '.';
+import { parseDocs, ParseOptions } from '.';
 import chalk from 'chalk';
 
 const args = minimist(process.argv, {
   default: {
     packageMode: 'single',
+    apiDocDir: path.join('docs', 'api'),
+    outName: 'electron-api',
   },
+  boolean: ['dontExtractVersion'],
 });
 
-const { dir, outDir, useReadme, packageMode, help } = args;
+const {
+  dir,
+  outDir,
+  useReadme,
+  packageMode,
+  dontExtractVersion,
+  apiDocDir,
+  outName,
+  websiteURL,
+  repoURL,
+  help,
+} = args;
 if (!['single', 'multi'].includes(packageMode)) {
   console.error(chalk.red('packageMode must be one of "single" and "multi"'));
   process.exit(1);
@@ -23,7 +37,11 @@ if (!['single', 'multi'].includes(packageMode)) {
 
 if (help) {
   console.info(
-    chalk.cyan('Usage: electron-docs-parser --dir ../electron [--out-dir ../electron-out]'),
+    chalk.cyan(
+      'Usage: electron-docs-parser --dir ../electron \
+[--out-dir ../electron-out] [--dontExtractVersion] [--apiDocDir docs/api] \
+[--outName electron-api]',
+    ),
   );
   process.exit(0);
 }
@@ -42,14 +60,17 @@ if (!fs.pathExistsSync(resolvedDir)) {
 }
 
 const packageJsonPath = path.resolve(resolvedDir, 'package.json');
-if (!fs.pathExistsSync(packageJsonPath)) {
+if (!dontExtractVersion && !fs.pathExistsSync(packageJsonPath)) {
   runner.fail(
     `${chalk.red('Expected a package.json file to exist at path:')} ${chalk.cyan(packageJsonPath)}`,
   );
   process.exit(1);
 }
 
-const pj = require(packageJsonPath);
+let pj;
+if (!dontExtractVersion) {
+  pj = require(packageJsonPath);
+}
 
 const resolvedOutDir =
   typeof outDir === 'string'
@@ -57,26 +78,39 @@ const resolvedOutDir =
       ? outDir
       : path.resolve(process.cwd(), outDir)
     : process.cwd();
-
 runner.text = chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolvedOutDir}"`)}`);
 
 const start = Date.now();
 
+const options: ParseOptions = {
+  useReadme: useReadme ? true : false,
+  baseDirectory: resolvedDir,
+  moduleVersion: 'no-version',
+  packageMode,
+  apiDir: apiDocDir,
+  websiteURL: websiteURL,
+  repoURL: repoURL,
+};
+
+const fileListPath = path.resolve(path.join(resolvedDir, apiDocDir), 'api-doc-list.json');
+if (fs.pathExistsSync(fileListPath)) {
+  options.fileList = require(fileListPath);
+}
+
+if (!dontExtractVersion) {
+  options.moduleVersion = pj.version;
+}
+
 fs.mkdirp(resolvedOutDir).then(() =>
-  parseDocs({
-    useReadme: useReadme ? true : false,
-    baseDirectory: resolvedDir,
-    moduleVersion: pj.version,
-    packageMode,
-  })
+  parseDocs(options)
     .then(data =>
-      fs.writeJson(path.resolve(resolvedOutDir, './electron-api.json'), data, {
+      fs.writeJson(path.resolve(resolvedOutDir, path.join('./', outName + '.json')), data, {
         spaces: 2,
       }),
     )
     .then(() =>
       runner.succeed(
-        `${chalk.green('Electron API generated in')} ${chalk.yellow(
+        `${chalk.green(`${outName}.json generated in`)} ${chalk.yellow(
           `"${resolvedOutDir}"`,
         )} took ${chalk.cyan(pretty(Date.now() - start))}`,
       ),
