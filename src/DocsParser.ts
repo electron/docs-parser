@@ -163,7 +163,7 @@ export class DocsParser {
     const contents = await fs.readFile(filePath, 'utf8');
     const md = new MarkdownIt();
 
-    const allTokens = md.parse(contents, {});
+    const allTokens = md.parse(contents.replace(/<!--[\s\S]*?-->/g, ''), {});
 
     const baseInfos = await this.parseBaseContainers(filePath, contents, allTokens);
     let lastModule: ModuleDocumentationContainer | null = null;
