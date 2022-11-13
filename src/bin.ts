@@ -15,7 +15,7 @@ const args = minimist(process.argv, {
   },
 });
 
-const { dir, outDir, useReadme, packageMode, help } = args;
+const { dir, outDir, useReadme, packageMode, moduleVersion, help } = args;
 if (!['single', 'multi'].includes(packageMode)) {
   console.error(chalk.red('packageMode must be one of "single" and "multi"'));
   process.exit(1);
@@ -35,21 +35,16 @@ if (typeof dir !== 'string') {
   process.exit(1);
 }
 
+if (typeof moduleVersion !== 'string') {
+  runner.fail(chalk.red('Missing required --moduleVersion argument.  "--moduleVersion 1.2.3"'));
+  process.exit(1);
+}
+
 const resolvedDir = path.isAbsolute(dir) ? dir : path.resolve(process.cwd(), dir);
 if (!fs.pathExistsSync(resolvedDir)) {
   runner.fail(`${chalk.red('Resolved directory does not exist:')} ${chalk.cyan(resolvedDir)}`);
   process.exit(1);
 }
-
-const packageJsonPath = path.resolve(resolvedDir, 'package.json');
-if (!fs.pathExistsSync(packageJsonPath)) {
-  runner.fail(
-    `${chalk.red('Expected a package.json file to exist at path:')} ${chalk.cyan(packageJsonPath)}`,
-  );
-  process.exit(1);
-}
-
-const pj = require(packageJsonPath);
 
 const resolvedOutDir =
   typeof outDir === 'string'
@@ -66,7 +61,7 @@ fs.mkdirp(resolvedOutDir).then(() =>
   parseDocs({
     useReadme: useReadme ? true : false,
     baseDirectory: resolvedDir,
-    moduleVersion: pj.version,
+    moduleVersion,
     packageMode,
   })
     .then(data =>
