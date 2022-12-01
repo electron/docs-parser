@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`markdown-helpers rawTypeToTypeInformation() should allow commas in object types 1`] = `
-Object {
+{
   "collection": false,
-  "parameters": Array [],
-  "returns": Object {
+  "parameters": [],
+  "returns": {
     "collection": false,
     "type": "{a: string, b: string}",
   },
@@ -13,10 +13,10 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a Promise types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
       "type": "T",
     },
@@ -26,17 +26,17 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a complex Promise types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": false,
           "type": "A",
         },
@@ -48,19 +48,19 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a function return type + param types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "parameters": Array [
-    Object {
+  "parameters": [
+    {
       "collection": false,
       "type": "P1",
     },
-    Object {
+    {
       "collection": false,
       "type": "P2",
     },
   ],
-  "returns": Object {
+  "returns": {
     "collection": false,
     "type": "R",
   },
@@ -69,10 +69,10 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a function return type correctly 1`] = `
-Object {
+{
   "collection": false,
-  "parameters": Array [],
-  "returns": Object {
+  "parameters": [],
+  "returns": {
     "collection": false,
     "type": "R",
   },
@@ -81,41 +81,41 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a function with complex return type + complex param types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "parameters": Array [
-    Object {
+  "parameters": [
+    {
       "collection": false,
-      "innerTypes": Array [
-        Object {
+      "innerTypes": [
+        {
           "collection": false,
           "type": "InnerP1",
         },
-        Object {
+        {
           "collection": true,
           "type": "AnotherInnerP1",
         },
       ],
       "type": "P1",
     },
-    Object {
+    {
       "collection": false,
-      "innerTypes": Array [
-        Object {
+      "innerTypes": [
+        {
           "collection": true,
-          "type": Array [
-            Object {
+          "type": [
+            {
               "collection": false,
               "type": "InnerP2",
             },
-            Object {
+            {
               "collection": false,
-              "innerTypes": Array [
-                Object {
+              "innerTypes": [
+                {
                   "collection": false,
                   "type": "SuperDeepP2",
                 },
-                Object {
+                {
                   "collection": false,
                   "type": "EvenDeeperP2",
                 },
@@ -128,10 +128,10 @@ Object {
       "type": "P2",
     },
   ],
-  "returns": Object {
+  "returns": {
     "collection": false,
-    "innerTypes": Array [
-      Object {
+    "innerTypes": [
+      {
         "collection": false,
         "type": "Foo",
       },
@@ -143,20 +143,20 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Function types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": true,
-          "parameters": Array [],
-          "returns": Object {
+          "parameters": [],
+          "returns": {
             "collection": true,
             "type": "A",
           },
@@ -170,20 +170,20 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Promise types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": false,
-          "innerTypes": Array [
-            Object {
+          "innerTypes": [
+            {
               "collection": false,
               "type": "A",
             },
@@ -198,20 +198,20 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex Promise types correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": true,
-          "innerTypes": Array [
-            Object {
+          "innerTypes": [
+            {
               "collection": true,
               "type": "A",
             },
@@ -226,20 +226,20 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex Promise types correctly 2`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": false,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": true,
-          "innerTypes": Array [
-            Object {
+          "innerTypes": [
+            {
               "collection": true,
               "type": "A",
             },
@@ -254,27 +254,27 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a primitive types correctly 1`] = `
-Object {
+{
   "collection": false,
   "type": "Boolean",
 }
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map a wrapped collection type correctly 1`] = `
-Object {
+{
   "collection": false,
-  "innerTypes": Array [
-    Object {
+  "innerTypes": [
+    {
       "collection": true,
-      "type": Array [
-        Object {
+      "type": [
+        {
           "collection": false,
           "type": "T",
         },
-        Object {
+        {
           "collection": false,
-          "parameters": Array [],
-          "returns": Object {
+          "parameters": [],
+          "returns": {
             "collection": true,
             "type": "A",
           },
@@ -288,7 +288,7 @@ Object {
 `;
 
 exports[`markdown-helpers rawTypeToTypeInformation() should map an unknown types correctly 1`] = `
-Object {
+{
   "collection": false,
   "type": "MyType",
 }
