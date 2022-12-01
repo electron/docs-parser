@@ -46,7 +46,7 @@ describe('markdown-helpers', () => {
 
     it('should throw an error if there is a tag not on the whitelist', () => {
       expect(() => parseHeadingTags(' _Awesome_')).toThrowErrorMatchingInlineSnapshot(
-        `"heading tags must be from the whitelist: [\\"macOS\\",\\"mas\\",\\"Windows\\",\\"Linux\\",\\"Experimental\\",\\"Deprecated\\",\\"Readonly\\"]: expected [ Array(7) ] to include 'Awesome'"`,
+        `"heading tags must be from the whitelist: ["macOS","mas","Windows","Linux","Experimental","Deprecated","Readonly"]: expected [ 'macOS', 'mas', 'Windows', …(4) ] to include 'Awesome'"`,
       );
     });
   });
