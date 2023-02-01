@@ -361,7 +361,7 @@ export const rawTypeToTypeInformation = (
         return info;
       });
 
-    // Special case, when the generic type is "Event" then their should be no declared
+    // Special case, when the generic type is "Event" then there should be no declared
     // innerTypes.  Instead we extract the following list as event parameters.
     if (genericTypeString === 'Event') {
       if (innerTypes.length) {
