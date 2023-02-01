@@ -361,6 +361,50 @@ export const rawTypeToTypeInformation = (
         return info;
       });
 
+    // Special case, when the generic type is "Event" then their should be no declared
+    // innerTypes.  Instead we extract the following list as event parameters.
+    if (genericTypeString === 'Event') {
+      if (innerTypes.length) {
+        if (subTypedKeys && !subTypedKeys.consumed) {
+          throw new Error(
+            'Found an Event<> declaration with a type declared in the generic, Event<> should not have declared inner types AND a parameter list',
+          );
+        }
+
+        if (innerTypes.length > 1) {
+          throw new Error(
+            'Found an Event<> declaration with multiple types declared in the generic, Event<> should have at most one inner type',
+          );
+        }
+
+        return {
+          collection,
+          type: 'Event',
+          eventPropertiesReference: innerTypes[0],
+        };
+      } else {
+        if (!subTypedKeys || subTypedKeys.consumed) {
+          throw new Error(
+            'Found an Event<> declaration without a parameter list, either declare as "Event" or provide a parameter list below',
+          );
+        }
+
+        return {
+          collection,
+          type: 'Event',
+          eventProperties: consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(
+            typedKey => ({
+              name: typedKey.key,
+              description: typedKey.description,
+              required: typedKey.required,
+              additionalTags: typedKey.additionalTags,
+              ...typedKey.type,
+            }),
+          ),
+        };
+      }
+    }
+
     // Special case, when the generic type is "Function" then the first N - 1 innerTypes are
     // parameter types and the Nth innerType is the return type
     if (genericTypeString === 'Function') {
@@ -384,6 +428,13 @@ export const rawTypeToTypeInformation = (
         returns: innerTypes[innerTypes.length - 1],
       };
     }
+
+    if (!innerTypes.length) {
+      throw new Error(
+        `Found a generic declaration without a type declared in the generic, T<> (${genericTypeString}<>) should have at least one inner type`,
+      );
+    }
+
     return {
       collection,
       type: genericTypeString,
