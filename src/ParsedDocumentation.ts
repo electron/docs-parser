@@ -19,6 +19,14 @@ export declare type DetailedObjectType = {
   type: 'Object';
   properties: PropertyDocumentationBlock[];
 };
+export declare type DetailedEventType = {
+  type: 'Event';
+  eventProperties: PropertyDocumentationBlock[];
+};
+export declare type DetailedEventReferenceType = {
+  type: 'Event';
+  eventPropertiesReference: TypeInformation;
+};
 export declare type DetailedFunctionType = {
   type: 'Function';
   parameters: MethodParameterDocumentation[];
@@ -30,6 +38,8 @@ export declare type DetailedType = (
     }
   | DetailedFunctionType
   | DetailedObjectType
+  | DetailedEventType
+  | DetailedEventReferenceType
   | DetailedStringType
   | {
       type: string;
