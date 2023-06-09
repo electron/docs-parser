@@ -170,6 +170,34 @@ def fn():
         expect(values[1].value).toBe('b_c');
         expect(values[2].value).toBe('d');
       });
+
+      it('should extract an enum with fullstops in the values', () => {
+        const values = extractStringEnum('Values includes `a`, `b.c` and `d`')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(3);
+        expect(values[0].value).toBe('a');
+        expect(values[1].value).toBe('b.c');
+        expect(values[2].value).toBe('d');
+      });
+
+      it('should extract an enum with colons in the values', () => {
+        const values = extractStringEnum('Values includes `a`, `https:` and `d`')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(3);
+        expect(values[0].value).toBe('a');
+        expect(values[1].value).toBe('https:');
+        expect(values[2].value).toBe('d');
+      });
+
+      it('should extract an enum with numbers in the values', () => {
+        const values = extractStringEnum('Can be `tls1`, `tls1.1`, `tls1.2` or `tls1.3`.')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(4);
+        expect(values[0].value).toBe('tls1');
+        expect(values[1].value).toBe('tls1.1');
+        expect(values[2].value).toBe('tls1.2');
+        expect(values[3].value).toBe('tls1.3');
+      });
     });
 
     describe('with single quotes', () => {
