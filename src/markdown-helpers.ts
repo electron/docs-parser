@@ -456,11 +456,11 @@ export enum StripReturnTypeBehavior {
 export const extractStringEnum = (description: string): PossibleStringValue[] | null => {
   const possibleValues: PossibleStringValue[] = [];
 
-  const inlineValuesPattern = /(?:can be|values? includes?) ((?:(?:[`|'][a-zA-Z-_]+[`|'])(?:(, | )?))*(?:(?:or|and) [`|'][a-zA-Z-_]+[`|'])?)/i;
+  const inlineValuesPattern = /(?:can be|values? includes?) ((?:(?:[`|'][a-zA-Z0-9-_\.:]+[`|'])(?:(, | )?))*(?:(?:or|and) [`|'][a-zA-Z0-9-_\.:]+[`|'])?)/i;
   const inlineMatch = inlineValuesPattern.exec(description);
   if (inlineMatch) {
     const valueString = inlineMatch[1];
-    const valuePattern = /[`|']([a-zA-Z-_]+)[`|']/g;
+    const valuePattern = /[`|']([a-zA-Z0-9-_\.:]+)[`|']/g;
     let value = valuePattern.exec(valueString);
 
     while (value) {
