@@ -23,10 +23,10 @@ workflows:
                 - node/macos
                 - node/windows
               node-version:
-                - 20.5
-                - 18.17
-                - 16.20
-                - 14.21
+                - '20.5'
+                - '18.17'
+                - '16.20'
+                - '14.21'
       - cfa/release:
           requires:
             - test
