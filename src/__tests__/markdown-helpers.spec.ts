@@ -530,19 +530,28 @@ foo`),
   });
 
   describe('findProcess()', () => {
-    it('should be available in main processe only', () => {
+    it('should be available in main process only', () => {
       var proc = findProcess(getTokens('Process: [Main](../glossary.md#main-process)'));
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(false);
+      expect(proc.utility).toEqual(false);
     });
 
-    it('should be available in renderer processe only', () => {
+    it('should be available in renderer process only', () => {
       var proc = findProcess(getTokens('Process: [Renderer](../glossary.md#renderer-process)'));
       expect(proc.main).toEqual(false);
       expect(proc.renderer).toEqual(true);
+      expect(proc.utility).toEqual(false);
     });
 
-    it('should be available in both processes', () => {
+    it('should be available in utility process only', () => {
+      var proc = findProcess(getTokens('Process: [Utility](../glossary.md#utility-process)'));
+      expect(proc.main).toEqual(false);
+      expect(proc.renderer).toEqual(false);
+      expect(proc.utility).toEqual(true);
+    });
+
+    it('should be available in main and renderer processes', () => {
       var proc = findProcess(
         getTokens(
           'Process: [Main](../glossary.md#main-process), [Renderer](../glossary.md#renderer-process)',
@@ -550,9 +559,10 @@ foo`),
       );
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(true);
+      expect(proc.utility).toEqual(false);
     });
 
-    it('should be available in both processes', () => {
+    it('should be available in main and renderer processes', () => {
       var proc = findProcess(
         getTokens(
           'Process: [Renderer](../glossary.md#renderer-process), [Main](../glossary.md#main-process)',
@@ -560,18 +570,32 @@ foo`),
       );
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(true);
+      expect(proc.utility).toEqual(false);
     });
 
-    it('should be available in both processes', () => {
+    it('should be available in main and utility processes', () => {
+      var proc = findProcess(
+        getTokens(
+          'Process: [Main](../glossary.md#main-process), [Utility](../glossary.md#renderer-process)',
+        ),
+      );
+      expect(proc.main).toEqual(true);
+      expect(proc.renderer).toEqual(false);
+      expect(proc.utility).toEqual(true);
+    });
+
+    it('should be available in all processes', () => {
       var proc = findProcess(getTokens(''));
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(true);
+      expect(proc.utility).toEqual(true);
     });
 
-    it('should be available in both processes', () => {
+    it('should be available in all processes', () => {
       var proc = findProcess([]);
       expect(proc.main).toEqual(true);
       expect(proc.renderer).toEqual(true);
+      expect(proc.utility).toEqual(true);
     });
   });
 
