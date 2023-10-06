@@ -818,6 +818,7 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
       const procs: ProcessBlock = {
         main: false,
         renderer: false,
+        utility: false,
         exported: !ptks.some(
           ptk => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
         ),
@@ -826,11 +827,12 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
         if (ptk.type !== 'text') continue;
         if (ptk.content === 'Main') procs.main = true;
         if (ptk.content === 'Renderer') procs.renderer = true;
+        if (ptk.content === 'Utility') procs.utility = true;
       }
       return procs;
     }
   }
-  return { main: true, renderer: true, exported: false };
+  return { main: true, renderer: true, utility: true, exported: false };
 };
 
 export const slugifyHeading = (heading: string): string => {
