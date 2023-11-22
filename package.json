@@ -21,7 +21,6 @@
     "!dist/__tests__"
   ],
   "devDependencies": {
-    "@continuous-auth/semantic-release-npm": "^3.0.0",
     "@types/chai": "^4.2.5",
     "@types/fs-extra": "^8.0.1",
     "@types/jest": "^24.0.23",
