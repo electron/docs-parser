@@ -341,6 +341,17 @@ exports[`markdown-helpers safelyJoinTokens snapshots should be correct for parag
 Hey"
 `;
 
+exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-br-tag 1`] = `
+"Process: Main
+ _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._
+
+Process: Main
+ _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._
+
+Process: Main
+ _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._"
+`;
+
 exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-inline-code 1`] = `"This is a \`inline code\` block that is \`code\` tagged."`;
 
 exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;

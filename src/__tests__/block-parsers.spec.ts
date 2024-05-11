@@ -3,7 +3,7 @@ import { parseMethodBlocks } from '../block-parsers';
 
 describe('block parsers', () => {
   it('should parse a method', async () => {
-    const md = new MarkdownIt();
+    const md = new MarkdownIt({ html: true });
     const contents = `
 # \`test.foo(x)\`
 * \`x\` Integer - x

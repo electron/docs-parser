@@ -157,7 +157,7 @@ export class DocsParser {
       | ElementDocumentationContainer
     )[] = [];
     const contents = await fs.readFile(filePath, 'utf8');
-    const md = new MarkdownIt();
+    const md = new MarkdownIt({ html: true });
 
     const allTokens = md.parse(contents, {});
 
@@ -263,7 +263,7 @@ export class DocsParser {
 
   private async parseStructure(filePath: string): Promise<StructureDocumentationContainer> {
     const contents = await fs.readFile(filePath, 'utf8');
-    const md = new MarkdownIt();
+    const md = new MarkdownIt({ html: true });
 
     const tokens = md.parse(contents, {});
     const baseInfos = await this.parseBaseContainers(filePath, contents, tokens);
