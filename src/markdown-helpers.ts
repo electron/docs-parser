@@ -578,6 +578,8 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         's_close',
         'blockquote_open',
         'blockquote_close',
+        'html_block',
+        'html_inline',
       ],
       'We only support plain text, links, softbreaks, inline code, strong tags and paragraphs inside joinable tokens',
     );
@@ -640,6 +642,13 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         break;
       case 'paragraph_open':
       case 'blockquote_close':
+      case 'html_block':
+        break;
+      case 'html_inline':
+        // Replace <br> elements with a newline
+        if (tokenToCheck.content.match(/<br\s*\/?>/)) {
+          joinedContent += '\n';
+        }
         break;
       case 'fence':
         if (options.parseCodeFences) {

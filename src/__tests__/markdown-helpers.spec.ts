@@ -18,7 +18,7 @@ import {
 import { DocumentationTag } from '../ParsedDocumentation';
 
 const getTokens = (md: string) => {
-  const markdown = new MarkdownIt();
+  const markdown = new MarkdownIt({ html: true });
   return markdown.parse(md, {});
 };
 
