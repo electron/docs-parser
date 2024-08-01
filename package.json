@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "author": "Samuel Attard",
   "license": "MIT",
+  "engines": {
+    "node": "^14.15.0 || ^16.10.0 || >=18.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npx yarn build",
