@@ -474,6 +474,17 @@ foo`),
       });
     });
 
+    it('should helpfully error for badly formatted union return types', () => {
+      const customTokens = getTokens(
+        `Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID.`,
+      );
+      expect(() => extractReturnType(customTokens)).toThrowErrorMatchingInlineSnapshot(`
+        "Found a return type declaration that appears to be declaring a type union (A | B) but in the incorrect format. Type unions must be fully enclosed in backticks. For instance, instead of \`A\` | \`B\` you should specify \`A | B\`.
+        Specifically this error was encountered here:
+          "Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID."..."
+      `);
+    });
+
     it('should handle return types with no descriptions', () => {
       const printerTokens = getTokens(`Returns [\`PrinterInfo[]\`](structures/printer-info.md)`);
       const printerRet = extractReturnType(printerTokens);
