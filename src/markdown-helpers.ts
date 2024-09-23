@@ -530,6 +530,14 @@ export const extractReturnType = (
     } catch {}
   }
 
+  if (parsedDescription.trim().startsWith('|')) {
+    throw new Error(
+      `Found a return type declaration that appears to be declaring a type union (A | B) but in the incorrect format. Type unions must be fully enclosed in backticks. For instance, instead of \`A\` | \`B\` you should specify \`A | B\`.\nSpecifically this error was encountered here:\n  "${rawDescription
+        .trim()
+        .slice(0, 100)}"...`,
+    );
+  }
+
   return {
     parsedDescription: parsedDescription.trim(),
     parsedReturnType: rawTypeToTypeInformation(rawReturnType, parsedDescription, typedKeys),
