@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import * as fs from 'fs-extra';
+import fs from 'node:fs';
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token';
+import { Token } from 'markdown-it';
 import * as path from 'path';
-import toCamelCase = require('lodash.camelcase');
+import toCamelCase from 'lodash.camelcase';
 
 import {
   ParsedDocumentation,
@@ -13,7 +13,7 @@ import {
   ModuleDocumentationContainer,
   ClassDocumentationContainer,
   ElementDocumentationContainer,
-} from './ParsedDocumentation';
+} from './ParsedDocumentation.js';
 import {
   findNextList,
   convertListToTypedKeys,
@@ -28,15 +28,15 @@ import {
   findContentAfterHeadingClose,
   HeadingContent,
   getContentBeforeFirstHeadingMatching,
-} from './markdown-helpers';
-import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants';
-import { extendError } from './helpers';
+} from './markdown-helpers.js';
+import { WEBSITE_BASE_DOCS_URL, REPO_BASE_DOCS_URL } from './constants.js';
+import { extendError } from './helpers.js';
 import {
   parseMethodBlocks,
   _headingToMethodBlock,
   parsePropertyBlocks,
   parseEventBlocks,
-} from './block-parsers';
+} from './block-parsers.js';
 
 export class DocsParser {
   constructor(
@@ -108,7 +108,7 @@ export class DocsParser {
             groups = getContentBeforeConstructor(tokens);
           } else {
             // FIXME: Make it so that we don't need this magic FIXME for the electron breaking-changes document
-            groups = getContentBeforeFirstHeadingMatching(tokens, heading =>
+            groups = getContentBeforeFirstHeadingMatching(tokens, (heading) =>
               ['Events', 'Methods', 'Properties', '`FIXME` comments'].includes(heading.trim()),
             );
           }
@@ -156,7 +156,7 @@ export class DocsParser {
       | ClassDocumentationContainer
       | ElementDocumentationContainer
     )[] = [];
-    const contents = await fs.readFile(filePath, 'utf8');
+    const contents = await fs.promises.readFile(filePath, 'utf8');
     const md = new MarkdownIt({ html: true });
 
     const allTokens = md.parse(contents, {});
@@ -182,7 +182,7 @@ export class DocsParser {
       if (isClass) {
         // Instance name will be taken either from an example in a method declaration or the camel
         // case version of the class name
-        const levelFourHeader = headingsAndContent(tokens).find(h => h.level === 4);
+        const levelFourHeader = headingsAndContent(tokens).find((h) => h.level === 4);
         const instanceName = levelFourHeader
           ? (levelFourHeader.heading.split('`')[1] || '').split('.')[0] ||
             toCamelCase(container.name)
@@ -262,7 +262,7 @@ export class DocsParser {
   }
 
   private async parseStructure(filePath: string): Promise<StructureDocumentationContainer> {
-    const contents = await fs.readFile(filePath, 'utf8');
+    const contents = await fs.promises.readFile(filePath, 'utf8');
     const md = new MarkdownIt({ html: true });
 
     const tokens = md.parse(contents, {});
@@ -279,7 +279,7 @@ export class DocsParser {
     return {
       type: 'Structure',
       ...baseInfos[0].container,
-      properties: consumeTypedKeysList(convertListToTypedKeys(list!)).map(typedKey => ({
+      properties: consumeTypedKeysList(convertListToTypedKeys(list!)).map((typedKey) => ({
         name: typedKey.key,
         description: typedKey.description,
         required: typedKey.required,

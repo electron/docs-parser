@@ -57,7 +57,7 @@ describe('markdown-helpers', () => {
     });
 
     describe('snapshots', () => {
-      const fixtureDir = path.resolve(__dirname, 'fixtures');
+      const fixtureDir = path.resolve(import.meta.dirname, 'fixtures');
       for (const markdownFixture of fs.readdirSync(fixtureDir)) {
         if (!markdownFixture.endsWith('.md')) continue;
 

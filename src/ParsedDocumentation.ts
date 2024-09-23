@@ -172,7 +172,7 @@ export class ParsedDocumentation {
   }
 
   public getJSON(): ParsedDocumentationResult {
-    return this.repr.filter(container => {
+    return this.repr.filter((container) => {
       if (container.type !== 'Module') return true;
 
       return container.events.length + container.methods.length + container.properties.length > 0;

@@ -1,22 +1,44 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs-extra';
-import minimist from 'minimist';
+import chalk from 'chalk';
+import fs from 'node:fs';
+import { parseArgs } from 'node:util';
 import ora from 'ora';
 import * as path from 'path';
 import pretty from 'pretty-ms';
 
-import { parseDocs } from '.';
-import chalk from 'chalk';
+import { parseDocs } from './index.js';
 
-const args = minimist(process.argv, {
-  default: {
-    packageMode: 'single',
+const {
+  values: { outDir, dir, useReadme, moduleVersion, help, packageMode },
+} = parseArgs({
+  options: {
+    packageMode: {
+      type: 'string',
+      default: 'single',
+    },
+    dir: {
+      type: 'string',
+    },
+    outDir: {
+      type: 'string',
+    },
+    useReadme: {
+      type: 'boolean',
+    },
+    moduleVersion: {
+      type: 'string',
+    },
+    help: {
+      type: 'boolean',
+      default: false,
+    },
   },
 });
 
-const { dir, outDir, useReadme, packageMode, moduleVersion, help } = args;
-if (!['single', 'multi'].includes(packageMode)) {
+let safePackageMode = packageMode as 'single' | 'multi' | string;
+
+if (safePackageMode !== 'single' && safePackageMode !== 'multi') {
   console.error(chalk.red('packageMode must be one of "single" and "multi"'));
   process.exit(1);
 }
@@ -41,7 +63,7 @@ if (typeof moduleVersion !== 'string') {
 }
 
 const resolvedDir = path.isAbsolute(dir) ? dir : path.resolve(process.cwd(), dir);
-if (!fs.pathExistsSync(resolvedDir)) {
+if (!fs.existsSync(resolvedDir)) {
   runner.fail(`${chalk.red('Resolved directory does not exist:')} ${chalk.cyan(resolvedDir)}`);
   process.exit(1);
 }
@@ -57,17 +79,18 @@ runner.text = chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolv
 
 const start = Date.now();
 
-fs.mkdirp(resolvedOutDir).then(() =>
+fs.promises.mkdir(resolvedOutDir, { recursive: true }).then(() =>
   parseDocs({
     useReadme: useReadme ? true : false,
     baseDirectory: resolvedDir,
     moduleVersion,
-    packageMode,
+    packageMode: safePackageMode,
   })
-    .then(data =>
-      fs.writeJson(path.resolve(resolvedOutDir, './electron-api.json'), data, {
-        spaces: 2,
-      }),
+    .then((data) =>
+      fs.promises.writeFile(
+        path.resolve(resolvedOutDir, './electron-api.json'),
+        JSON.stringify(data, null, 2),
+      ),
     )
     .then(() =>
       runner.succeed(
@@ -76,7 +99,7 @@ fs.mkdirp(resolvedOutDir).then(() =>
         )} took ${chalk.cyan(pretty(Date.now() - start))}`,
       ),
     )
-    .catch(err => {
+    .catch((err) => {
       runner.fail();
       console.error(err);
       process.exit(1);

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import Token from 'markdown-it/lib/token';
+import { Token } from 'markdown-it';
 
 import {
   parseHeadingTags,
@@ -14,12 +14,12 @@ import {
   StripReturnTypeBehavior,
   consumeTypedKeysList,
   slugifyHeading,
-} from './markdown-helpers';
+} from './markdown-helpers.js';
 import {
   MethodDocumentationBlock,
   PropertyDocumentationBlock,
   EventDocumentationBlock,
-} from './ParsedDocumentation';
+} from './ParsedDocumentation.js';
 
 type GuessedParam = {
   name: string;
@@ -110,7 +110,7 @@ export const _headingToMethodBlock = (
       null,
       `Method ${heading.heading} has at least one parameter but no parameter type list`,
     );
-    parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map(typedKey => ({
+    parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map((typedKey) => ({
       name: typedKey.key,
       description: typedKey.description,
       required: typedKey.required,
@@ -191,13 +191,11 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
 
   let parameters: EventDocumentationBlock['parameters'] = [];
   if (
-    safelyJoinTokens(findContentAfterHeadingClose(heading.content))
-      .trim()
-      .startsWith('Returns:')
+    safelyJoinTokens(findContentAfterHeadingClose(heading.content)).trim().startsWith('Returns:')
   ) {
     const list = findNextList(heading.content);
     if (list) {
-      parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map(typedKey => ({
+      parameters = consumeTypedKeysList(convertListToTypedKeys(list)).map((typedKey) => ({
         name: typedKey.key,
         description: typedKey.description,
         ...typedKey.type,
@@ -219,7 +217,7 @@ export const _headingToEventBlock = (heading: HeadingContent): EventDocumentatio
 export const parseMethodBlocks = (tokens: Token[] | null): MethodDocumentationBlock[] => {
   if (!tokens) return [];
 
-  return headingsAndContent(tokens).map(heading => _headingToMethodBlock(heading)!);
+  return headingsAndContent(tokens).map((heading) => _headingToMethodBlock(heading)!);
 };
 
 export const parsePropertyBlocks = (tokens: Token[] | null): PropertyDocumentationBlock[] => {
