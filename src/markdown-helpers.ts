@@ -35,7 +35,7 @@ export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
     parsedTags.push(match[1] as keyof typeof tagMap);
   }
 
-  return parsedTags.map(value => {
+  return parsedTags.map((value) => {
     if (tagMap[value]) return tagMap[value];
 
     throw new Error(
@@ -45,7 +45,7 @@ export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
 };
 
 export const findNextList = (tokens: Token[]) => {
-  const start = tokens.findIndex(t => t.type === 'bullet_list_open');
+  const start = tokens.findIndex((t) => t.type === 'bullet_list_open');
   if (start === -1) return null;
   let opened = 1;
   let end = -1;
@@ -63,7 +63,7 @@ export const findNextList = (tokens: Token[]) => {
 };
 
 export const findFirstHeading = (tokens: Token[]) => {
-  const open = tokens.findIndex(token => token.type === 'heading_open');
+  const open = tokens.findIndex((token) => token.type === 'heading_open');
   expect(open).to.not.equal(-1, "expected to find a heading token but couldn't");
   expect(tokens).to.have.lengthOf.at.least(open + 2);
   expect(tokens[open + 2].type).to.equal('heading_close');
@@ -89,16 +89,16 @@ export const findContentAfterList = (tokens: Token[], returnAllOnNoList = false)
   }
   if (start === -1) {
     if (!returnAllOnNoList) return [];
-    start = tokens.findIndex(t => t.type === 'heading_close');
+    start = tokens.findIndex((t) => t.type === 'heading_close');
   }
-  const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
+  const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
 };
 
 export const findContentAfterHeadingClose = (tokens: Token[]) => {
-  const start = tokens.findIndex(t => t.type === 'heading_close');
-  const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
+  const start = tokens.findIndex((t) => t.type === 'heading_close');
+  const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
 };
@@ -118,14 +118,14 @@ export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
     const headingTokens = tokens.slice(
       start + 1,
       start +
-        tokens.slice(start).findIndex(t => t.type === 'heading_close' && t.level === token.level),
+        tokens.slice(start).findIndex((t) => t.type === 'heading_close' && t.level === token.level),
     );
 
     const startLevel = parseInt(token.tag.replace('h', ''), 10);
 
     const content = tokens.slice(start + headingTokens.length);
     const contentEnd = content.findIndex(
-      t => t.type === 'heading_open' && parseInt(t.tag.replace('h', ''), 10) <= startLevel,
+      (t) => t.type === 'heading_open' && parseInt(t.tag.replace('h', ''), 10) <= startLevel,
     );
 
     groups.push({
@@ -140,7 +140,7 @@ export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
 };
 
 const getConstructorHeaderInGroups = (groups: HeadingContent[]) => {
-  return groups.find(group => group.heading.startsWith('`new ') && group.level === 3);
+  return groups.find((group) => group.heading.startsWith('`new ') && group.level === 3);
 };
 
 export const findConstructorHeader = (tokens: Token[]) => {
@@ -165,7 +165,7 @@ export const getContentBeforeFirstHeadingMatching = (
 
   return groups.slice(
     0,
-    groups.findIndex(g => matcher(g.heading)),
+    groups.findIndex((g) => matcher(g.heading)),
   );
 };
 
@@ -175,7 +175,7 @@ export const findContentInsideHeader = (
   expectedLevel: number,
 ) => {
   const group = headingsAndContent(tokens).find(
-    g => g.heading === expectedHeader && g.level === expectedLevel,
+    (g) => g.heading === expectedHeader && g.level === expectedLevel,
   );
   if (!group) return null;
   return group.content;
@@ -205,7 +205,7 @@ export const safelySeparateTypeStringOn = (typeString: string, targetChar: strin
     }
   }
   types.push(current);
-  return types.map(t => t.trim()).filter(t => !!t);
+  return types.map((t) => t.trim()).filter((t) => !!t);
 };
 
 export const getTopLevelMultiTypes = (typeString: string) => {
@@ -286,7 +286,7 @@ export const rawTypeToTypeInformation = (
               index === multiTypes.length - 1 && !wasBracketWrapped && collection ? '[]' : ''
             }`,
         )
-        .map(multiType => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
+        .map((multiType) => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
     };
   }
 
@@ -296,7 +296,7 @@ export const rawTypeToTypeInformation = (
       type: 'Function',
       parameters:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
+          ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>((typedKey) => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -311,7 +311,7 @@ export const rawTypeToTypeInformation = (
       type: 'Object',
       properties:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
+          ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>((typedKey) => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -326,13 +326,13 @@ export const rawTypeToTypeInformation = (
       type: 'String',
       possibleValues:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>(typedKey => ({
+          ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>((typedKey) => ({
               value: typedKey.key,
               description: typedKey.description,
             }))
           : relatedDescription
-          ? extractStringEnum(relatedDescription)
-          : null,
+            ? extractStringEnum(relatedDescription)
+            : null,
     };
   }
 
@@ -340,21 +340,23 @@ export const rawTypeToTypeInformation = (
   if (genericTypeMatch) {
     const genericTypeString = genericTypeMatch.outerType;
     const innerTypes = getTopLevelOrderedTypes(genericTypeMatch.genericType)
-      .map(t => rawTypeToTypeInformation(t.trim(), '', null))
-      .map(info => {
+      .map((t) => rawTypeToTypeInformation(t.trim(), '', null))
+      .map((info) => {
         if (info.type === 'Object') {
           return {
             ...info,
             type: 'Object',
             properties:
               subTypedKeys && !subTypedKeys.consumed
-                ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
-                    name: typedKey.key,
-                    description: typedKey.description,
-                    required: typedKey.required,
-                    additionalTags: typedKey.additionalTags,
-                    ...typedKey.type,
-                  }))
+                ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(
+                    (typedKey) => ({
+                      name: typedKey.key,
+                      description: typedKey.description,
+                      required: typedKey.required,
+                      additionalTags: typedKey.additionalTags,
+                      ...typedKey.type,
+                    }),
+                  )
                 : [],
           };
         }
@@ -393,7 +395,7 @@ export const rawTypeToTypeInformation = (
           collection,
           type: 'Event',
           eventProperties: consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(
-            typedKey => ({
+            (typedKey) => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -417,12 +419,14 @@ export const rawTypeToTypeInformation = (
           // If no param types are provided in the <A, B, C> syntax then we should fallback to the normal one
           genericProvidedParams.length === 0
             ? subTypedKeys && !subTypedKeys.consumed
-              ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
-                  name: typedKey.key,
-                  description: typedKey.description,
-                  required: typedKey.required,
-                  ...typedKey.type,
-                }))
+              ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(
+                  (typedKey) => ({
+                    name: typedKey.key,
+                    description: typedKey.description,
+                    required: typedKey.required,
+                    ...typedKey.type,
+                  }),
+                )
               : []
             : (genericProvidedParams as MethodParameterDocumentation[]),
         returns: innerTypes[innerTypes.length - 1],
@@ -453,28 +457,185 @@ export enum StripReturnTypeBehavior {
   DO_NOT_STRIP,
 }
 
+// All possible value separators, sorted by reverse length to ensure
+// that we match the longer comma prefix variants first if they are present
+const niceSeparators = [',', 'and', 'or', ', and', ', or'].sort((a, b) => b.length - a.length);
+// Some string enums can also be objects, the final phrase is "or an object" and we
+// should gracefully terminate in that case
+const niceTerminators = [', or an Object', 'or an Object'].sort((a, b) => b.length - a.length);
+const suffixesToIgnore = ['(Deprecated)'];
+
 export const extractStringEnum = (description: string): PossibleStringValue[] | null => {
-  const possibleValues: PossibleStringValue[] = [];
+  const inlineValuesLocatorPattern = /(?:can be|values? includes?) (.+)/i;
+  const locatorMatch = inlineValuesLocatorPattern.exec(description);
+  if (!locatorMatch) return null;
 
-  const inlineValuesPattern = /(?:can be|values? includes?) ((?:(?:[`"'][a-zA-Z0-9-_\.:]+[`"'])(?:(, | )?))*(?:(?:or|and) [`"'][a-zA-Z0-9-_\.:]+[`"'])?)/i;
-  const inlineMatch = inlineValuesPattern.exec(description);
-  if (inlineMatch) {
-    const valueString = inlineMatch[1];
-    const valuePattern = /[`"']([a-zA-Z0-9-_\.:]+)[`"']/g;
-    let value = valuePattern.exec(valueString);
+  const valuesTokens = locatorMatch[1].split('');
 
-    while (value) {
-      possibleValues.push({
-        value: value[1],
-        description: '',
-      });
-      value = valuePattern.exec(valueString);
+  const state = {
+    // Where are we in the valueTokens array
+    position: 0,
+    // What values have we found so far
+    values: [] as string[],
+    // The current value we are building, was found wrapped by `currentQuoter`
+    currentValue: '',
+    // The quote character that we encountered to start building a value
+    // We won't stop adding characters to `currentValue` until the same character
+    // is encountered again
+    currentQuoter: null as null | string,
+    // In some cases quoted values are wrapped with other markdown indicators, for
+    // instance strikethrough ~ characters. This handles those to ensure anything
+    // we allow as a wrapping character is unwrapped after a value is extracted.
+    currentQuoterWrappers: [] as string[],
+    // This is set to true after a value is extracted to allow us to parse out a
+    // nice separator. For instance a "comma", a complete list is in `niceSeparators`
+    // above.
+    expectingNiceSeparator: false,
+    // This is set after the state machine reaches a point that _could_ be the end,
+    // an invalid token when this is set to true is not a fatal error rather the
+    // graceful termination of the state machine.
+    couldBeDone: false,
+  };
+  stringEnumTokenLoop: while (state.position < valuesTokens.length) {
+    const char = valuesTokens[state.position];
+    state.position++;
+
+    if (state.currentQuoter) {
+      // We should never expect a separator inside a quoted value
+      if (state.expectingNiceSeparator) {
+        throw new Error('wat');
+      }
+      if (char === state.currentQuoter) {
+        state.currentQuoter = null;
+        state.values.push(state.currentValue);
+        state.currentValue = '';
+        state.expectingNiceSeparator = true;
+      } else {
+        state.currentValue += char;
+      }
+    } else {
+      // Whitespace can be skipped
+      if (char === ' ') {
+        continue stringEnumTokenLoop;
+      }
+
+      // If we're between values we should be expecting one of the above "nice"
+      // separators.
+      if (state.expectingNiceSeparator) {
+        // Before checking for a separator we need to ensure we have unwrapped any wrapping
+        // chars
+        if (state.currentQuoterWrappers.length) {
+          const expectedUnwrap = state.currentQuoterWrappers.pop();
+          if (char !== expectedUnwrap) {
+            throw new Error(
+              `Unexpected token while extracting string enum. Expected an unwrapping token that matched "${expectedUnwrap}". But found token: ${char}\nContext: "${
+                locatorMatch[1]
+              }"\n${' '.repeat(8 + state.position)}^`,
+            );
+          }
+          continue stringEnumTokenLoop;
+        }
+
+        if (char === '.' || char === ';' || char === '-') {
+          break stringEnumTokenLoop;
+        }
+
+        for (const suffix of suffixesToIgnore) {
+          if (
+            [char, ...valuesTokens.slice(state.position, state.position + suffix.length - 1)].join(
+              '',
+            ) === suffix
+          ) {
+            state.position += suffix.length - 1;
+            continue stringEnumTokenLoop;
+          }
+        }
+
+        for (const niceTerminator of niceTerminators) {
+          if (
+            [
+              char,
+              ...valuesTokens.slice(state.position, state.position + niceTerminator.length - 1),
+            ].join('') === niceTerminator
+          ) {
+            state.position += niceTerminator.length - 1;
+            state.expectingNiceSeparator = false;
+            state.couldBeDone = true;
+            continue stringEnumTokenLoop;
+          }
+        }
+
+        for (const niceSeparator of niceSeparators) {
+          if (
+            [
+              char,
+              ...valuesTokens.slice(state.position, state.position + niceSeparator.length - 1),
+            ].join('') === niceSeparator
+          ) {
+            state.position += niceSeparator.length - 1;
+            state.expectingNiceSeparator = false;
+            if (niceSeparator === ',') {
+              state.couldBeDone = true;
+            }
+            continue stringEnumTokenLoop;
+          }
+        }
+        throw new Error(
+          `Unexpected separator token while extracting string enum, expected a comma or "and" or "or" but found "${char}"\nContext: ${
+            locatorMatch[1]
+          }\n${' '.repeat(8 + state.position)}^`,
+        );
+      }
+
+      if (['"', "'", '`'].includes(char)) {
+        // Quote chars start a new value
+        state.currentQuoter = char;
+        // A new value has started, we no longer could be done on an invalid char
+        state.couldBeDone = false;
+        continue stringEnumTokenLoop;
+      }
+      if (['~'].includes(char)) {
+        // Deprecated string enum values are wrapped with strikethrough
+        state.currentQuoterWrappers.push(char);
+        continue stringEnumTokenLoop;
+      }
+      // If we are at the very start we should just assume our heuristic found something silly
+      // and bail, 0 valid characters is skip-able
+      if (state.position === 1) {
+        return null;
+      }
+      // If the last thing we parsed _could_ have been a termination character
+      // let's assume an invalid character here confirms that.
+      if (state.couldBeDone) {
+        break stringEnumTokenLoop;
+      }
+      // Anything else is unexpected
+      throw new Error(
+        `Unexpected token while extracting string enum. Token: ${char}\nContext: "${
+          locatorMatch[1]
+        }"\n${' '.repeat(9 + state.position)}^`,
+      );
     }
-
-    return possibleValues.length === 0 ? null : possibleValues;
   }
 
-  return null;
+  // Reached the end of the description, we should check
+  // if we are in a clean state (not inside a quote).
+  // If so we're good, if not hard error
+  if (state.currentQuoter || state.currentValue) {
+    throw new Error(
+      `Unexpected early termination of token sequence while extracting string enum, did you forget to close a quote?\nContext: ${locatorMatch[1]}`,
+    );
+  }
+
+  // No options we should just bail, can't have a string enum with 0 options
+  if (!state.values.length) {
+    return null;
+  }
+
+  return state.values.map((value) => ({
+    value,
+    description: '',
+  }));
 };
 
 export const extractReturnType = (
@@ -829,7 +990,7 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
         renderer: false,
         utility: false,
         exported: !ptks.some(
-          ptk => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
+          (ptk) => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
         ),
       };
       for (const ptk of ptks) {
