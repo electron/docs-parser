@@ -499,7 +499,7 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
     if (state.currentQuoter) {
       // We should never expect a separator inside a quoted value
       if (state.expectingNiceSeparator) {
-        throw new Error('wat');
+        throw new Error('Impossible state encountered while extracting a string enum');
       }
       if (char === state.currentQuoter) {
         state.currentQuoter = null;
