@@ -1,6 +1,6 @@
-import * as fs from 'fs-extra';
+import fs from 'node:fs';
 import * as path from 'path';
-import { DocsParser } from './DocsParser';
+import { DocsParser } from './DocsParser.js';
 
 type ParseOptions = {
   baseDirectory: string;
@@ -43,10 +43,10 @@ export async function parseDocs(options: ParseOptions) {
 async function getAllMarkdownFiles(inDir: string) {
   const allMarkdownFiles: string[] = [];
 
-  const children = await fs.readdir(inDir);
+  const children = await fs.promises.readdir(inDir);
   for (const child of children) {
     const childPath = path.resolve(inDir, child);
-    const stats = await fs.stat(childPath);
+    const stats = await fs.promises.stat(childPath);
     if (path.extname(childPath) === '.md' && stats.isFile()) {
       allMarkdownFiles.push(childPath);
     }
@@ -55,4 +55,4 @@ async function getAllMarkdownFiles(inDir: string) {
   return allMarkdownFiles;
 }
 
-export * from './ParsedDocumentation';
+export * from './ParsedDocumentation.js';

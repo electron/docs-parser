@@ -1,8 +1,13 @@
-const path = require('path');
+import path from 'node:path';
+import { createDefaultEsmPreset } from 'ts-jest';
 
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testPathIgnorePatterns: ['node_modules', path.resolve(__dirname, 'dist')],
-  setupFiles: ['<rootDir>/jest.setup.js'],
+/** @type {import('ts-jest').JestConfigWithTsJest} **/
+export default {
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  testPathIgnorePatterns: ['node_modules', path.resolve(import.meta.dirname, 'dist')],
+  ...createDefaultEsmPreset({
+    tsconfig: 'tsconfig.json',
+  })
 };

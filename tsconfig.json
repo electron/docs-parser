@@ -1,11 +1,16 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es6",
+		"module": "es2022",
+		"target": "es2022",
+		"moduleResolution": "Node",
 		"outDir": "dist",
 		"lib": [
 			"es6",
 			"es7"
+		],
+		"types": [
+			"node",
+			"jest"
 		],
 		"declaration": true,
 		"sourceMap": true,
