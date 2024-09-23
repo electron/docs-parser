@@ -14,7 +14,8 @@
     "prepublishOnly": "npx yarn build",
     "prettier:check": "prettier --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest"
+    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest",
+    "prepare": "husky"
   },
   "bin": {
     "electron-docs-linter": "./dist/bin.js",
@@ -31,7 +32,9 @@
     "@types/node": "^22.5.5",
     "@types/pretty-ms": "^5.0.1",
     "cross-env": "^7.0.3",
+    "husky": "^9.1.6",
     "jest": "^30.0.0-alpha.6",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.2"
@@ -44,6 +47,9 @@
     "markdown-it": "^14.1.0",
     "ora": "^8.1.0",
     "pretty-ms": "^9.1.0"
+  },
+  "lint-staged": {
+    "*.ts": "prettier --write"
   },
   "repository": {
     "type": "git",
