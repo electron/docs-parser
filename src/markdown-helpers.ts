@@ -453,28 +453,174 @@ export enum StripReturnTypeBehavior {
   DO_NOT_STRIP,
 }
 
+// All possible value separators, sorted by reverse length to ensure
+// that we match the longer comma prefix variants first if they are present
+const niceSeparators = [',', 'and', 'or', ', and', ', or'].sort((a, b) => b.length - a.length);
+// Some string enums can also be objects, the final phrase is "or an object" and we
+// should gracefully terminate in that case
+const niceTerminators = [', or an Object', 'or an Object'].sort((a, b) => b.length - a.length);
+const suffixesToIgnore = ['(Deprecated)'];
+
 export const extractStringEnum = (description: string): PossibleStringValue[] | null => {
-  const possibleValues: PossibleStringValue[] = [];
+  const inlineValuesLocatorPattern = /(?:can be|values? includes?) (.+)/i;
+  const locatorMatch = inlineValuesLocatorPattern.exec(description);
+  if (!locatorMatch) return null;
 
-  const inlineValuesPattern = /(?:can be|values? includes?) ((?:(?:[`|'][a-zA-Z0-9-_\.:]+[`|'])(?:(, | )?))*(?:(?:or|and) [`|'][a-zA-Z0-9-_\.:]+[`|'])?)/i;
-  const inlineMatch = inlineValuesPattern.exec(description);
-  if (inlineMatch) {
-    const valueString = inlineMatch[1];
-    const valuePattern = /[`|']([a-zA-Z0-9-_\.:]+)[`|']/g;
-    let value = valuePattern.exec(valueString);
+  const valuesTokens = locatorMatch[1].split('');
 
-    while (value) {
-      possibleValues.push({
-        value: value[1],
-        description: '',
-      });
-      value = valuePattern.exec(valueString);
+  const state = {
+    // Where are we in the valueTokens array
+    position: 0,
+    // What values have we found so far
+    values: [] as string[],
+    // The current value we are building, was found wrapped by `currentQuoter`
+    currentValue: '',
+    // The quote character that we encountered to start building a value
+    // We won't stop adding characters to `currentValue` until the same character
+    // is encountered again
+    currentQuoter: null as null | string,
+    // In some cases quoted values are wrapped with other markdown indicators, for
+    // instance strikethrough ~ characters. This handles those to ensure anything
+    // we allow as a wrapping character is unwrapped after a value is extracted.
+    currentQuoterWrappers: [] as string[],
+    // This is set to true after a value is extracted to allow us to parse out a
+    // nice separator. For instance a "comma", a complete list is in `niceSeparators`
+    // above.
+    expectingNiceSeparator: false,
+    // This is set after the state machine reaches a point that _could_ be the end,
+    // an invalid token when this is set to true is not a fatal error rather the
+    // graceful termination of the state machine.
+    couldBeDone: false,
+  };
+  const lookAhead = (length: number) => {
+    return valuesTokens.slice(state.position - 1, state.position + length - 1).join('');
+  };
+  stringEnumTokenLoop: while (state.position < valuesTokens.length) {
+    const char = valuesTokens[state.position];
+    state.position++;
+
+    if (state.currentQuoter) {
+      // We should never expect a separator inside a quoted value
+      if (state.expectingNiceSeparator) {
+        throw new Error('Impossible state encountered while extracting a string enum');
+      }
+      if (char === state.currentQuoter) {
+        state.currentQuoter = null;
+        state.values.push(state.currentValue);
+        state.currentValue = '';
+        state.expectingNiceSeparator = true;
+      } else {
+        state.currentValue += char;
+      }
+    } else {
+      // Whitespace can be skipped
+      if (char === ' ') {
+        continue stringEnumTokenLoop;
+      }
+
+      // If we're between values we should be expecting one of the above "nice"
+      // separators.
+      if (state.expectingNiceSeparator) {
+        // Before checking for a separator we need to ensure we have unwrapped any wrapping
+        // chars
+        if (state.currentQuoterWrappers.length) {
+          const expectedUnwrap = state.currentQuoterWrappers.pop();
+          if (char !== expectedUnwrap) {
+            throw new Error(
+              `Unexpected token while extracting string enum. Expected an unwrapping token that matched "${expectedUnwrap}". But found token: ${char}\nContext: "${
+                locatorMatch[1]
+              }"\n${' '.repeat(8 + state.position)}^`,
+            );
+          }
+          continue stringEnumTokenLoop;
+        }
+
+        if (char === '.' || char === ';' || char === '-') {
+          break stringEnumTokenLoop;
+        }
+
+        for (const suffix of suffixesToIgnore) {
+          if (lookAhead(suffix.length) === suffix) {
+            state.position += suffix.length - 1;
+            continue stringEnumTokenLoop;
+          }
+        }
+
+        for (const niceTerminator of niceTerminators) {
+          if (lookAhead(niceTerminator.length) === niceTerminator) {
+            state.position += niceTerminator.length - 1;
+            state.expectingNiceSeparator = false;
+            state.couldBeDone = true;
+            continue stringEnumTokenLoop;
+          }
+        }
+
+        for (const niceSeparator of niceSeparators) {
+          if (lookAhead(niceSeparator.length) === niceSeparator) {
+            state.position += niceSeparator.length - 1;
+            state.expectingNiceSeparator = false;
+            if (niceSeparator === ',') {
+              state.couldBeDone = true;
+            }
+            continue stringEnumTokenLoop;
+          }
+        }
+        throw new Error(
+          `Unexpected separator token while extracting string enum, expected a comma or "and" or "or" but found "${char}"\nContext: ${
+            locatorMatch[1]
+          }\n${' '.repeat(8 + state.position)}^`,
+        );
+      }
+
+      if (['"', "'", '`'].includes(char)) {
+        // Quote chars start a new value
+        state.currentQuoter = char;
+        // A new value has started, we no longer could be done on an invalid char
+        state.couldBeDone = false;
+        continue stringEnumTokenLoop;
+      }
+      if (['~'].includes(char)) {
+        // Deprecated string enum values are wrapped with strikethrough
+        state.currentQuoterWrappers.push(char);
+        continue stringEnumTokenLoop;
+      }
+      // If we are at the very start we should just assume our heuristic found something silly
+      // and bail, 0 valid characters is skip-able
+      if (state.position === 1) {
+        return null;
+      }
+      // If the last thing we parsed _could_ have been a termination character
+      // let's assume an invalid character here confirms that.
+      if (state.couldBeDone) {
+        break stringEnumTokenLoop;
+      }
+      // Anything else is unexpected
+      throw new Error(
+        `Unexpected token while extracting string enum. Token: ${char}\nContext: "${
+          locatorMatch[1]
+        }"\n${' '.repeat(9 + state.position)}^`,
+      );
     }
-
-    return possibleValues.length === 0 ? null : possibleValues;
   }
 
-  return null;
+  // Reached the end of the description, we should check
+  // if we are in a clean state (not inside a quote).
+  // If so we're good, if not hard error
+  if (state.currentQuoter || state.currentValue) {
+    throw new Error(
+      `Unexpected early termination of token sequence while extracting string enum, did you forget to close a quote?\nContext: ${locatorMatch[1]}`,
+    );
+  }
+
+  // No options we should just bail, can't have a string enum with 0 options
+  if (!state.values.length) {
+    return null;
+  }
+
+  return state.values.map(value => ({
+    value,
+    description: '',
+  }));
 };
 
 export const extractReturnType = (
