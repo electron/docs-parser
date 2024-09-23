@@ -104,6 +104,76 @@ def fn():
       expect(extractStringEnum('wassup')).toBe(null);
     });
 
+    it('should error helpfully on invalid value separators', () => {
+      expect(() => extractStringEnum('Can be `x` sometimes `y'))
+        .toThrowErrorMatchingInlineSnapshot(`
+        "Unexpected separator token while extracting string enum, expected a comma or "and" or "or" but found "s"
+        Context: \`x\` sometimes \`y
+                     ^"
+      `);
+    });
+
+    it('should error helpfully on unterminated enum strings', () => {
+      expect(() => extractStringEnum('Can be `x` or `y')).toThrowErrorMatchingInlineSnapshot(`
+        "Unexpected early termination of token sequence while extracting string enum, did you forget to close a quote?
+        Context: \`x\` or \`y"
+      `);
+    });
+
+    describe('mixed ticks', () => {
+      it('should extract an enum when mixed quotes are used', () => {
+        const values = extractStringEnum('Can be `x"` or "`y"')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x"');
+        expect(values[1].value).toBe('`y');
+      });
+    });
+
+    describe('deprecated wrappers', () => {
+      it('should handle strikethrough deprecation wrappers', () => {
+        const values = extractStringEnum('Can be `x` or ~~`y`~~')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x');
+        expect(values[1].value).toBe('y');
+      });
+    });
+
+    describe('lead-in descriptions', () => {
+      it('should handle value lists that smoothly lead in to prose with a comma', () => {
+        const values = extractStringEnum('Can be `x` or `y`, where `x` implies that...')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x');
+        expect(values[1].value).toBe('y');
+      });
+
+      it('should handle value lists that smoothly lead in to prose with a fullstop', () => {
+        const values = extractStringEnum('Can be `x` or `y`. The `x` value implies that...')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x');
+        expect(values[1].value).toBe('y');
+      });
+
+      it('should handle value lists that smoothly lead in to prose with a semicolon', () => {
+        const values = extractStringEnum('Can be `x` or `y`; the `x` value implies that...')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x');
+        expect(values[1].value).toBe('y');
+      });
+
+      it('should handle value lists that smoothly lead in to prose with a hyphen', () => {
+        const values = extractStringEnum('Can be `x` or `y` - the `x` value implies that...')!;
+        expect(values).not.toBe(null);
+        expect(values).toHaveLength(2);
+        expect(values[0].value).toBe('x');
+        expect(values[1].value).toBe('y');
+      });
+    });
+
     describe('with backticks', () => {
       it('should extract an enum of the format "can be x"', () => {
         const values = extractStringEnum('Can be `x`')!;
@@ -257,6 +327,65 @@ def fn():
         expect(values[1].value).toBe('b');
         expect(values[2].value).toBe('c');
       });
+    });
+  });
+
+  describe('with double quotes', () => {
+    it('should extract an enum of the format "can be x"', () => {
+      const values = extractStringEnum(`Can be "x"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(1);
+      expect(values[0].value).toBe('x');
+    });
+
+    it('should extract an enum of the format "can be x or y"', () => {
+      const values = extractStringEnum(`Can be "x" or "y"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(2);
+      expect(values[0].value).toBe('x');
+      expect(values[1].value).toBe('y');
+    });
+
+    it('should extract an enum of the format "can be x, y or z"', () => {
+      const values = extractStringEnum(`Can be "x", "y" or "z"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(3);
+      expect(values[0].value).toBe('x');
+      expect(values[1].value).toBe('y');
+      expect(values[2].value).toBe('z');
+    });
+
+    it('should extract an enum of the format "can be x, y, or z"', () => {
+      const values = extractStringEnum(`Can be "x", "y", or "z"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(3);
+      expect(values[0].value).toBe('x');
+      expect(values[1].value).toBe('y');
+      expect(values[2].value).toBe('z');
+    });
+
+    it('should extract an enum of the format "values include a', () => {
+      const values = extractStringEnum(`Values include "a"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(1);
+      expect(values[0].value).toBe('a');
+    });
+
+    it('should extract an enum of the format "values include a and b', () => {
+      const values = extractStringEnum(`Values include "a" and "b"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(2);
+      expect(values[0].value).toBe('a');
+      expect(values[1].value).toBe('b');
+    });
+
+    it('should extract an enum of the format "values include a, b and c', () => {
+      const values = extractStringEnum(`Values include "a", "b" and "c"`)!;
+      expect(values).not.toBe(null);
+      expect(values).toHaveLength(3);
+      expect(values[0].value).toBe('a');
+      expect(values[1].value).toBe('b');
+      expect(values[2].value).toBe('c');
     });
   });
 
@@ -472,6 +601,17 @@ foo`),
         collection: false,
         type: 'WebContents',
       });
+    });
+
+    it('should helpfully error for badly formatted union return types', () => {
+      const customTokens = getTokens(
+        `Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID.`,
+      );
+      expect(() => extractReturnType(customTokens)).toThrowErrorMatchingInlineSnapshot(`
+        "Found a return type declaration that appears to be declaring a type union (A | B) but in the incorrect format. Type unions must be fully enclosed in backticks. For instance, instead of \`A\` | \`B\` you should specify \`A | B\`.
+        Specifically this error was encountered here:
+          "Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID."..."
+      `);
     });
 
     it('should handle return types with no descriptions', () => {
