@@ -30,7 +30,7 @@ export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
   while ((match = matcher.exec(tags))) {
     expect(ALLOWED_TAGS).to.contain(
       match[1],
-      `heading tags must be from the whitelist: ${JSON.stringify(ALLOWED_TAGS)}`,
+      `heading tags must be from the allowlist: ${JSON.stringify(ALLOWED_TAGS)}`,
     );
     parsedTags.push(match[1] as keyof typeof tagMap);
   }
