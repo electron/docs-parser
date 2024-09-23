@@ -492,6 +492,9 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
     // graceful termination of the state machine.
     couldBeDone: false,
   };
+  const lookAhead = (length: number) => {
+    return valuesTokens.slice(state.position - 1, state.position + length - 1).join('');
+  };
   stringEnumTokenLoop: while (state.position < valuesTokens.length) {
     const char = valuesTokens[state.position];
     state.position++;
@@ -537,23 +540,14 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
         }
 
         for (const suffix of suffixesToIgnore) {
-          if (
-            [char, ...valuesTokens.slice(state.position, state.position + suffix.length - 1)].join(
-              '',
-            ) === suffix
-          ) {
+          if (lookAhead(suffix.length) === suffix) {
             state.position += suffix.length - 1;
             continue stringEnumTokenLoop;
           }
         }
 
         for (const niceTerminator of niceTerminators) {
-          if (
-            [
-              char,
-              ...valuesTokens.slice(state.position, state.position + niceTerminator.length - 1),
-            ].join('') === niceTerminator
-          ) {
+          if (lookAhead(niceTerminator.length) === niceTerminator) {
             state.position += niceTerminator.length - 1;
             state.expectingNiceSeparator = false;
             state.couldBeDone = true;
@@ -562,12 +556,7 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
         }
 
         for (const niceSeparator of niceSeparators) {
-          if (
-            [
-              char,
-              ...valuesTokens.slice(state.position, state.position + niceSeparator.length - 1),
-            ].join('') === niceSeparator
-          ) {
+          if (lookAhead(niceSeparator.length) === niceSeparator) {
             state.position += niceSeparator.length - 1;
             state.expectingNiceSeparator = false;
             if (niceSeparator === ',') {
