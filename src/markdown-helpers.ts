@@ -35,7 +35,7 @@ export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
     parsedTags.push(match[1] as keyof typeof tagMap);
   }
 
-  return parsedTags.map((value) => {
+  return parsedTags.map(value => {
     if (tagMap[value]) return tagMap[value];
 
     throw new Error(
@@ -45,7 +45,7 @@ export const parseHeadingTags = (tags: string | null): DocumentationTag[] => {
 };
 
 export const findNextList = (tokens: Token[]) => {
-  const start = tokens.findIndex((t) => t.type === 'bullet_list_open');
+  const start = tokens.findIndex(t => t.type === 'bullet_list_open');
   if (start === -1) return null;
   let opened = 1;
   let end = -1;
@@ -63,7 +63,7 @@ export const findNextList = (tokens: Token[]) => {
 };
 
 export const findFirstHeading = (tokens: Token[]) => {
-  const open = tokens.findIndex((token) => token.type === 'heading_open');
+  const open = tokens.findIndex(token => token.type === 'heading_open');
   expect(open).to.not.equal(-1, "expected to find a heading token but couldn't");
   expect(tokens).to.have.lengthOf.at.least(open + 2);
   expect(tokens[open + 2].type).to.equal('heading_close');
@@ -89,16 +89,16 @@ export const findContentAfterList = (tokens: Token[], returnAllOnNoList = false)
   }
   if (start === -1) {
     if (!returnAllOnNoList) return [];
-    start = tokens.findIndex((t) => t.type === 'heading_close');
+    start = tokens.findIndex(t => t.type === 'heading_close');
   }
-  const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
+  const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
 };
 
 export const findContentAfterHeadingClose = (tokens: Token[]) => {
-  const start = tokens.findIndex((t) => t.type === 'heading_close');
-  const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
+  const start = tokens.findIndex(t => t.type === 'heading_close');
+  const end = tokens.slice(start).findIndex(t => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
   return tokens.slice(start + 1, end);
 };
@@ -118,14 +118,14 @@ export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
     const headingTokens = tokens.slice(
       start + 1,
       start +
-        tokens.slice(start).findIndex((t) => t.type === 'heading_close' && t.level === token.level),
+        tokens.slice(start).findIndex(t => t.type === 'heading_close' && t.level === token.level),
     );
 
     const startLevel = parseInt(token.tag.replace('h', ''), 10);
 
     const content = tokens.slice(start + headingTokens.length);
     const contentEnd = content.findIndex(
-      (t) => t.type === 'heading_open' && parseInt(t.tag.replace('h', ''), 10) <= startLevel,
+      t => t.type === 'heading_open' && parseInt(t.tag.replace('h', ''), 10) <= startLevel,
     );
 
     groups.push({
@@ -140,7 +140,7 @@ export const headingsAndContent = (tokens: Token[]): HeadingContent[] => {
 };
 
 const getConstructorHeaderInGroups = (groups: HeadingContent[]) => {
-  return groups.find((group) => group.heading.startsWith('`new ') && group.level === 3);
+  return groups.find(group => group.heading.startsWith('`new ') && group.level === 3);
 };
 
 export const findConstructorHeader = (tokens: Token[]) => {
@@ -165,7 +165,7 @@ export const getContentBeforeFirstHeadingMatching = (
 
   return groups.slice(
     0,
-    groups.findIndex((g) => matcher(g.heading)),
+    groups.findIndex(g => matcher(g.heading)),
   );
 };
 
@@ -175,7 +175,7 @@ export const findContentInsideHeader = (
   expectedLevel: number,
 ) => {
   const group = headingsAndContent(tokens).find(
-    (g) => g.heading === expectedHeader && g.level === expectedLevel,
+    g => g.heading === expectedHeader && g.level === expectedLevel,
   );
   if (!group) return null;
   return group.content;
@@ -205,7 +205,7 @@ export const safelySeparateTypeStringOn = (typeString: string, targetChar: strin
     }
   }
   types.push(current);
-  return types.map((t) => t.trim()).filter((t) => !!t);
+  return types.map(t => t.trim()).filter(t => !!t);
 };
 
 export const getTopLevelMultiTypes = (typeString: string) => {
@@ -286,7 +286,7 @@ export const rawTypeToTypeInformation = (
               index === multiTypes.length - 1 && !wasBracketWrapped && collection ? '[]' : ''
             }`,
         )
-        .map((multiType) => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
+        .map(multiType => rawTypeToTypeInformation(multiType, relatedDescription, subTypedKeys)),
     };
   }
 
@@ -296,7 +296,7 @@ export const rawTypeToTypeInformation = (
       type: 'Function',
       parameters:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>((typedKey) => ({
+          ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -311,7 +311,7 @@ export const rawTypeToTypeInformation = (
       type: 'Object',
       properties:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>((typedKey) => ({
+          ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -326,13 +326,13 @@ export const rawTypeToTypeInformation = (
       type: 'String',
       possibleValues:
         subTypedKeys && !subTypedKeys.consumed
-          ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>((typedKey) => ({
+          ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>(typedKey => ({
               value: typedKey.key,
               description: typedKey.description,
             }))
           : relatedDescription
-            ? extractStringEnum(relatedDescription)
-            : null,
+          ? extractStringEnum(relatedDescription)
+          : null,
     };
   }
 
@@ -340,23 +340,21 @@ export const rawTypeToTypeInformation = (
   if (genericTypeMatch) {
     const genericTypeString = genericTypeMatch.outerType;
     const innerTypes = getTopLevelOrderedTypes(genericTypeMatch.genericType)
-      .map((t) => rawTypeToTypeInformation(t.trim(), '', null))
-      .map((info) => {
+      .map(t => rawTypeToTypeInformation(t.trim(), '', null))
+      .map(info => {
         if (info.type === 'Object') {
           return {
             ...info,
             type: 'Object',
             properties:
               subTypedKeys && !subTypedKeys.consumed
-                ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(
-                    (typedKey) => ({
-                      name: typedKey.key,
-                      description: typedKey.description,
-                      required: typedKey.required,
-                      additionalTags: typedKey.additionalTags,
-                      ...typedKey.type,
-                    }),
-                  )
+                ? consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(typedKey => ({
+                    name: typedKey.key,
+                    description: typedKey.description,
+                    required: typedKey.required,
+                    additionalTags: typedKey.additionalTags,
+                    ...typedKey.type,
+                  }))
                 : [],
           };
         }
@@ -395,7 +393,7 @@ export const rawTypeToTypeInformation = (
           collection,
           type: 'Event',
           eventProperties: consumeTypedKeysList(subTypedKeys).map<PropertyDocumentationBlock>(
-            (typedKey) => ({
+            typedKey => ({
               name: typedKey.key,
               description: typedKey.description,
               required: typedKey.required,
@@ -419,14 +417,12 @@ export const rawTypeToTypeInformation = (
           // If no param types are provided in the <A, B, C> syntax then we should fallback to the normal one
           genericProvidedParams.length === 0
             ? subTypedKeys && !subTypedKeys.consumed
-              ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(
-                  (typedKey) => ({
-                    name: typedKey.key,
-                    description: typedKey.description,
-                    required: typedKey.required,
-                    ...typedKey.type,
-                  }),
-                )
+              ? consumeTypedKeysList(subTypedKeys).map<MethodParameterDocumentation>(typedKey => ({
+                  name: typedKey.key,
+                  description: typedKey.description,
+                  required: typedKey.required,
+                  ...typedKey.type,
+                }))
               : []
             : (genericProvidedParams as MethodParameterDocumentation[]),
         returns: innerTypes[innerTypes.length - 1],
@@ -632,7 +628,7 @@ export const extractStringEnum = (description: string): PossibleStringValue[] | 
     return null;
   }
 
-  return state.values.map((value) => ({
+  return state.values.map(value => ({
     value,
     description: '',
   }));
@@ -990,7 +986,7 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
         renderer: false,
         utility: false,
         exported: !ptks.some(
-          (ptk) => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
+          ptk => ptk.type === 'text' && ptk.content.startsWith('This class is not exported'),
         ),
       };
       for (const ptk of ptks) {
