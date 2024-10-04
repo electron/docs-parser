@@ -3,6 +3,7 @@ import * as path from 'path';
 import MarkdownIt from 'markdown-it';
 
 import {
+  convertListToTypedKeys,
   safelyJoinTokens,
   extractStringEnum,
   extractReturnType,
@@ -666,6 +667,24 @@ foo`),
       expect(() => consumeTypedKeysList(list)).toThrowErrorMatchingInlineSnapshot(
         `"Attempted to consume a typed keys list that has already been consumed"`,
       );
+    });
+
+    it('should correctly parse types containing hyphens', () => {
+      const list = findNextList(getTokens("* `prop` 'string-enum' - description"));
+      const typedKeys = convertListToTypedKeys(list!);
+      const consumed = consumeTypedKeysList(typedKeys);
+      expect(consumed).toStrictEqual([
+        {
+          type: {
+            collection: false,
+            type: "'string-enum'",
+          },
+          key: 'prop',
+          description: 'description',
+          required: true,
+          additionalTags: [],
+        },
+      ]);
     });
   });
 

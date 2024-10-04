@@ -932,7 +932,8 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
 
     let rawType = 'String';
     if (typeAndDescriptionTokens.length !== 0) {
-      rawType = joinedContent.split('-')[0];
+      // Type can contain hyphen (e.g. 'string-enum') so require surrounding spaces.
+      rawType = joinedContent.split(' - ')[0];
     }
 
     const rawDescription = joinedContent.substr(rawType.length);
