@@ -9,6 +9,9 @@
   "engines": {
     "node": "^20.11.0 || >= 21.2.0"
   },
+  "publishConfig": {
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npx yarn build",
