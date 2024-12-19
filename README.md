@@ -1,6 +1,6 @@
 # Electron Docs Parser
 
-[![CircleCI build status](https://circleci.com/gh/electron/docs-parser/tree/main.svg?style=shield)](https://circleci.com/gh/electron/docs-parser/tree/main)
+[![Test](https://github.com/electron/docs-parser/actions/workflows/test.yml/badge.svg)](https://github.com/electron/docs-parser/actions/workflows/test.yml)
 [![npm version](http://img.shields.io/npm/v/@electron/docs-parser.svg)](https://npmjs.org/package/@electron/docs-parser)
 
 > Generate a structured JSON API file from Electron's free-form documentation
