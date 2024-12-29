@@ -44,4 +44,4 @@ typings in GitHub PRs, you're probably looking for [Archaeologist](https://githu
 
 ## License
 
-MIT
+[MIT](https://github.com/electron/docs-parser/blob/main/LICENSE)
