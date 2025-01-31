@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import MarkdownIt from 'markdown-it';
+import { describe, expect, it } from 'vitest';
 
 import {
   safelyJoinTokens,
@@ -14,8 +15,8 @@ import {
   consumeTypedKeysList,
   findProcess,
   slugifyHeading,
-} from '../markdown-helpers';
-import { DocumentationTag } from '../ParsedDocumentation';
+} from '../src/markdown-helpers';
+import { DocumentationTag } from '../src/ParsedDocumentation';
 
 const getTokens = (md: string) => {
   const markdown = new MarkdownIt({ html: true });
@@ -46,7 +47,7 @@ describe('markdown-helpers', () => {
 
     it('should throw an error if there is a tag not on the allowlist', () => {
       expect(() => parseHeadingTags(' _Awesome_')).toThrowErrorMatchingInlineSnapshot(
-        `"heading tags must be from the allowlist: ["macOS","mas","Windows","Linux","Experimental","Deprecated","Readonly"]: expected [ 'macOS', 'mas', 'Windows', …(4) ] to include 'Awesome'"`,
+        `[AssertionError: heading tags must be from the allowlist: ["macOS","mas","Windows","Linux","Experimental","Deprecated","Readonly"]: expected [ 'macOS', 'mas', 'Windows', …(4) ] to include 'Awesome']`,
       );
     });
   });
@@ -107,16 +108,16 @@ def fn():
     it('should error helpfully on invalid value separators', () => {
       expect(() => extractStringEnum('Can be `x` sometimes `y'))
         .toThrowErrorMatchingInlineSnapshot(`
-        "Unexpected separator token while extracting string enum, expected a comma or "and" or "or" but found "s"
-        Context: \`x\` sometimes \`y
-                     ^"
-      `);
+          [Error: Unexpected separator token while extracting string enum, expected a comma or "and" or "or" but found "s"
+          Context: \`x\` sometimes \`y
+                       ^]
+        `);
     });
 
     it('should error helpfully on unterminated enum strings', () => {
       expect(() => extractStringEnum('Can be `x` or `y')).toThrowErrorMatchingInlineSnapshot(`
-        "Unexpected early termination of token sequence while extracting string enum, did you forget to close a quote?
-        Context: \`x\` or \`y"
+        [Error: Unexpected early termination of token sequence while extracting string enum, did you forget to close a quote?
+        Context: \`x\` or \`y]
       `);
     });
 
@@ -509,7 +510,7 @@ hey lol
   describe('findFirstHeading()', () => {
     it('should throw if there is no heading', () => {
       expect(() => findFirstHeading(getTokens('`abc`'))).toThrowErrorMatchingInlineSnapshot(
-        `"expected to find a heading token but couldn't: expected -1 to not equal -1"`,
+        `[AssertionError: expected to find a heading token but couldn't: expected -1 to not equal -1]`,
       );
     });
 
@@ -518,7 +519,7 @@ hey lol
       expect(() =>
         findFirstHeading(tokens.slice(0, tokens.length - 2)),
       ).toThrowErrorMatchingInlineSnapshot(
-        `"expected [ Array(1) ] to have a length at least 2 but got 1"`,
+        `[AssertionError: expected [ Array(1) ] to have a length at least 2 but got 1]`,
       );
     });
 
@@ -608,9 +609,9 @@ foo`),
         `Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID.`,
       );
       expect(() => extractReturnType(customTokens)).toThrowErrorMatchingInlineSnapshot(`
-        "Found a return type declaration that appears to be declaring a type union (A | B) but in the incorrect format. Type unions must be fully enclosed in backticks. For instance, instead of \`A\` | \`B\` you should specify \`A | B\`.
+        [Error: Found a return type declaration that appears to be declaring a type union (A | B) but in the incorrect format. Type unions must be fully enclosed in backticks. For instance, instead of \`A\` | \`B\` you should specify \`A | B\`.
         Specifically this error was encountered here:
-          "Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID."..."
+          "Returns \`WebContents\` | \`string\` - A WebContents instance with the given ID."...]
       `);
     });
 
@@ -664,7 +665,7 @@ foo`),
       };
       consumeTypedKeysList(list);
       expect(() => consumeTypedKeysList(list)).toThrowErrorMatchingInlineSnapshot(
-        `"Attempted to consume a typed keys list that has already been consumed"`,
+        `[Error: Attempted to consume a typed keys list that has already been consumed]`,
       );
     });
   });

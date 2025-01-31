@@ -9,8 +9,7 @@
 			"es7"
 		],
 		"types": [
-			"node",
-			"jest"
+			"node"
 		],
 		"declaration": true,
 		"sourceMap": true,
@@ -19,5 +18,8 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"incremental": true
-	}
+	},
+	"include": [
+		"src"
+	]
 }

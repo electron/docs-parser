@@ -1,5 +1,7 @@
-import { extendError } from '../helpers';
+import { extendError } from '../src/helpers';
+
 import chalk from 'chalk';
+import { describe, expect, it } from 'vitest';
 
 describe('extendError', () => {
   it('should extend the error message with the provided prefix', () => {
