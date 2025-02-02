@@ -1,5 +1,7 @@
 import MarkdownIt from 'markdown-it';
-import { parseMethodBlocks } from '../block-parsers';
+import { describe, expect, it } from 'vitest';
+
+import { parseMethodBlocks } from '../src/block-parsers';
 
 describe('block parsers', () => {
   it('should parse a method', async () => {

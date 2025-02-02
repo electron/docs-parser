@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`markdown-helpers rawTypeToTypeInformation() should allow commas in object types 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should allow commas in object types 1`] = `
 {
   "collection": false,
   "parameters": [],
@@ -12,7 +12,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should allow commas in obje
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a Promise types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a Promise types correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -25,7 +25,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a Promise types 
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a complex Promise types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a complex Promise types correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -47,7 +47,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a complex Promis
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a function return type + param types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a function return type + param types correctly 1`] = `
 {
   "collection": false,
   "parameters": [
@@ -68,7 +68,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a function retur
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a function return type correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a function return type correctly 1`] = `
 {
   "collection": false,
   "parameters": [],
@@ -80,7 +80,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a function retur
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a function with complex return type + complex param types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a function with complex return type + complex param types correctly 1`] = `
 {
   "collection": false,
   "parameters": [
@@ -142,7 +142,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a function with 
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Function types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a nested Function types correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -169,7 +169,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Functio
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Promise types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a nested Promise types correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -197,7 +197,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a nested Promise
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex Promise types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a nested complex Promise types correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -225,7 +225,7 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex Promise types correctly 2`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a nested complex Promise types correctly 2`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -253,14 +253,14 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a nested complex
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a primitive types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a primitive types correctly 1`] = `
 {
   "collection": false,
   "type": "Boolean",
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map a wrapped collection type correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map a wrapped collection type correctly 1`] = `
 {
   "collection": false,
   "innerTypes": [
@@ -287,16 +287,16 @@ exports[`markdown-helpers rawTypeToTypeInformation() should map a wrapped collec
 }
 `;
 
-exports[`markdown-helpers rawTypeToTypeInformation() should map an unknown types correctly 1`] = `
+exports[`markdown-helpers > rawTypeToTypeInformation() > should map an unknown types correctly 1`] = `
 {
   "collection": false,
   "type": "MyType",
 }
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for basic-paragraph 1`] = `"This is just a basic paragraph.  It has multiple sentences and natural soft breaks."`;
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for basic-paragraph 1`] = `"This is just a basic paragraph.  It has multiple sentences and natural soft breaks."`;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for blockquotes 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for blockquotes 1`] = `
 "This is a paragraph
 
 > and here is a quote
@@ -304,7 +304,7 @@ exports[`markdown-helpers safelyJoinTokens snapshots should be correct for block
 and another paragraph"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for list-after-paragraph 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for list-after-paragraph 1`] = `
 "This is a paragraph
 
 * this
@@ -313,20 +313,20 @@ exports[`markdown-helpers safelyJoinTokens snapshots should be correct for list-
 * list"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for lists 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for lists 1`] = `
 "* bar
 * thing
 * stuff
 * my tab key does not work and I am sad"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for multiple-paragraphs 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for multiple-paragraphs 1`] = `
 "This is paragraph 1, it has a few sentences.  Like this one, and a soft break.
 
 And now this is a second paragraph, and it's also quite short with a soft break."
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for nested-list 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for nested-list 1`] = `
 "* top level
   * second level
 * back to top
@@ -335,13 +335,13 @@ exports[`markdown-helpers safelyJoinTokens snapshots should be correct for neste
     * now at third"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-fence-removal 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-fence-removal 1`] = `
 "This fence should be removed
 
 Hey"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-br-tag 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-br-tag 1`] = `
 "Process: Main
  _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._
 
@@ -352,13 +352,13 @@ Process: Main
  _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._"
 `;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-inline-code 1`] = `"This is a \`inline code\` block that is \`code\` tagged."`;
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-inline-code 1`] = `"This is a \`inline code\` block that is \`code\` tagged."`;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;
 
-exports[`markdown-helpers safelyJoinTokens snapshots should be correct for paragraph-with-text-markers 1`] = `"Heya, this is **bold** and _italic_ and *italic* and ~~struck through~~"`;
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-text-markers 1`] = `"Heya, this is **bold** and _italic_ and *italic* and ~~struck through~~"`;
 
-exports[`markdown-helpers safelyJoinTokens with code fence support should correctly insert the code fence 1`] = `
+exports[`markdown-helpers > safelyJoinTokens > with code fence support > should correctly insert the code fence 1`] = `
 "> a
 
 \`\`\`
