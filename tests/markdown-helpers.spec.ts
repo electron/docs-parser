@@ -391,8 +391,41 @@ def fn():
   });
 
   describe('rawTypeToTypeInformation()', () => {
+    it('should throw if a primitive type is not lowercase', () => {
+      expect(() =>
+        expect(rawTypeToTypeInformation('Boolean', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "boolean" instead of "Boolean" for a primitive type]`,
+      );
+      expect(() =>
+        expect(rawTypeToTypeInformation('Promise<Boolean>', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "boolean" instead of "Boolean" for a primitive type]`,
+      );
+      expect(() =>
+        expect(rawTypeToTypeInformation('String', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "string" instead of "String" for a primitive type]`,
+      );
+      expect(() =>
+        expect(rawTypeToTypeInformation('Promise<String>', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "string" instead of "String" for a primitive type]`,
+      );
+      expect(() =>
+        expect(rawTypeToTypeInformation('Number', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "number" instead of "Number" for a primitive type]`,
+      );
+      expect(() =>
+        expect(rawTypeToTypeInformation('Promise<Number>', '', null)),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Use lowercase "number" instead of "Number" for a primitive type]`,
+      );
+    });
+
     it('should map a primitive types correctly', () => {
-      expect(rawTypeToTypeInformation('Boolean', '', null)).toMatchSnapshot();
+      expect(rawTypeToTypeInformation('boolean', '', null)).toMatchSnapshot();
     });
 
     it('should map an unknown types correctly', () => {
@@ -550,12 +583,12 @@ foo`),
         type: 'Integer',
       });
 
-      const stringTokens = getTokens(`Returns \`String\` - Returns the WebRTC IP Handling Policy.`);
+      const stringTokens = getTokens(`Returns \`string\` - Returns the WebRTC IP Handling Policy.`);
       const stringRet = extractReturnType(stringTokens);
       expect(stringRet.parsedReturnType).toEqual({
         collection: false,
         possibleValues: null,
-        type: 'String',
+        type: 'string',
       });
     });
 
