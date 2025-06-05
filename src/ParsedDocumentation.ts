@@ -12,7 +12,7 @@ export declare type PossibleStringValue = {
   description: string;
 };
 export declare type DetailedStringType = {
-  type: 'String';
+  type: 'string';
   possibleValues: PossibleStringValue[] | null;
 };
 export declare type DetailedObjectType = {
