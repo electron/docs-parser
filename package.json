@@ -2,12 +2,13 @@
   "name": "@electron/docs-parser",
   "version": "0.0.0-development",
   "description": "Parse Electron documentation into a machine readable JSON file",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
+  "typings": "dist/index.d.ts",
   "type": "module",
   "author": "Samuel Attard",
   "license": "MIT",
   "engines": {
-    "node": "^20.11.0 || >= 21.2.0"
+    "node": ">=22.12.0"
   },
   "publishConfig": {
     "provenance": true
@@ -28,14 +29,15 @@
     "dist"
   ],
   "devDependencies": {
+    "@tsconfig/node22": "^22.0.2",
     "@types/chai": "^4.3.19",
     "@types/lodash.camelcase": "^4.3.9",
-    "@types/node": "^22.5.5",
+    "@types/node": "^22.10.7",
     "@types/pretty-ms": "^5.0.1",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
-    "typescript": "^5.6.2",
+    "typescript": "^5.8.3",
     "vitest": "^3.0.4"
   },
   "dependencies": {
