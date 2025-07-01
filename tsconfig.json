@@ -1,20 +1,10 @@
 {
+	"extends": "@tsconfig/node22/tsconfig.json",
 	"compilerOptions": {
-		"module": "es2022",
-		"target": "es2022",
-		"moduleResolution": "Node",
 		"outDir": "dist",
-		"lib": [
-			"es6",
-			"es7"
-		],
-		"types": [
-			"node"
-		],
 		"declaration": true,
 		"sourceMap": true,
 		"rootDir": "src",
-		"experimentalDecorators": true,
 		"strict": true,
 		"esModuleInterop": true,
 		"incremental": true
