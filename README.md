@@ -1,5 +1,7 @@
 # Electron Docs Parser
 
+<img width="124" height="124" align="right" alt="docs-parser-logo" src="design/logo.png" />
+
 [![Test](https://github.com/electron/docs-parser/actions/workflows/test.yml/badge.svg)](https://github.com/electron/docs-parser/actions/workflows/test.yml)
 [![npm version](http://img.shields.io/npm/v/@electron/docs-parser.svg)](https://npmjs.org/package/@electron/docs-parser)
 
@@ -16,7 +18,8 @@ electron-docs-parser --dir ./
 ```
 
 Options:
-* `--useReadme` - Assume all documentation is in the module's base `README.md` file 
+
+* `--useReadme` - Assume all documentation is in the module's base `README.md` file
 * `--dir` - The base directory where documentation is located.
   * API documentation must be located in `/docs/api` within the specified base directory.
   * API structures documentation must be located in `/docs/api/structures` within the specified base directory.
