@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
 import ora from 'ora';
-import * as path from 'path';
+import * as path from 'node:path';
 import pretty from 'pretty-ms';
 
 import { parseDocs } from './index.js';
