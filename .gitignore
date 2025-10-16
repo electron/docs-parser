@@ -3,3 +3,4 @@ dist
 *api.json
 tsconfig.tsbuildinfo
 coverage
+.yarn/install-state.gz
