@@ -202,7 +202,15 @@ Pops up this menu.
     it('should handle module with exported class in multi-package mode', async () => {
       const moduleContent = `# BrowserWindow
 
+_Main process_
+
 Create and control browser windows.
+
+## Methods
+
+### \`BrowserWindow.getAllWindows()\`
+
+Returns \`BrowserWindow[]\` - An array of all opened browser windows.
 
 ## Class: BrowserWindow
 
@@ -284,12 +292,27 @@ Fired when the navigation is done.
 _Main process_
 
 Main process module.
+
+## Methods
+
+### \`app.quit()\`
+
+Quit the application.
 `;
       const rendererProcessContent = `# contextBridge
 
 _Renderer process_
 
 Renderer process module.
+
+## Methods
+
+### \`contextBridge.exposeInMainWorld(apiKey, api)\`
+
+* \`apiKey\` string
+* \`api\` any
+
+Expose API to renderer.
 `;
 
       const mainPath = path.join(tempDir, 'docs', 'api', 'app.md');
@@ -448,7 +471,15 @@ This has no proper structure for parsing.
     it('should generate correct website and repo URLs', async () => {
       const moduleContent = `# testModule
 
+_Main process_
+
 Test module.
+
+## Methods
+
+### \`testModule.test()\`
+
+Test method.
 `;
 
       const modulePath = path.join(tempDir, 'docs', 'api', 'test-module.md');
@@ -457,7 +488,9 @@ Test module.
       const parser = new DocsParser(tempDir, '2.0.0', [modulePath], [], 'single');
       const result = await parser.parse();
 
+      expect(result.length).toBeGreaterThan(0);
       const testModule = result[0];
+      expect(testModule).toBeDefined();
       expect(testModule.websiteUrl).toContain('/docs/api/test-module');
       expect(testModule.repoUrl).toContain('v2.0.0/docs/api/test-module.md');
       expect(testModule.version).toBe('2.0.0');

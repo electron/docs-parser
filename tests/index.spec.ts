@@ -84,7 +84,15 @@ Test method.
     it('should use multi package mode when specified', async () => {
       const moduleWithClassContent = `# TestModule
 
+_Main process_
+
 Module description.
+
+## Methods
+
+### \`TestModule.init()\`
+
+Initialize the module.
 
 ## Class: TestClass
 
@@ -140,7 +148,15 @@ Test method.
     it('should parse both API files and structures', async () => {
       const appContent = `# app
 
+_Main process_
+
 Application module.
+
+## Methods
+
+### \`app.quit()\`
+
+Quit the app.
 `;
       const structureContent = `# Options Object
 
@@ -234,7 +250,15 @@ Initialize the package.
     it('should include version in parsed documentation', async () => {
       const appContent = `# app
 
+_Main process_
+
 Application module.
+
+## Methods
+
+### \`app.quit()\`
+
+Quit the app.
 `;
 
       const appPath = path.join(tempDir, 'docs', 'api', 'app.md');
@@ -252,9 +276,9 @@ Application module.
 
     it('should handle multiple API files', async () => {
       const files = [
-        { name: 'app.md', content: '# app\n\nApp module.' },
-        { name: 'browser-window.md', content: '# BrowserWindow\n\n## Class: BrowserWindow' },
-        { name: 'dialog.md', content: '# dialog\n\nDialog module.' },
+        { name: 'app.md', content: '# app\n\n_Main process_\n\nApp module.\n\n## Methods\n\n### `app.quit()`\n\nQuit.' },
+        { name: 'browser-window.md', content: '# BrowserWindow\n\n_Main process_\n\n## Methods\n\n### `BrowserWindow.getAllWindows()`\n\nGet all windows.\n\n## Class: BrowserWindow\n\n### Instance Methods\n\n#### `win.close()`\n\nClose.' },
+        { name: 'dialog.md', content: '# dialog\n\n_Main process_\n\nDialog module.\n\n## Methods\n\n### `dialog.showOpenDialog()`\n\nShow dialog.' },
       ];
 
       for (const file of files) {
@@ -281,7 +305,11 @@ Application module.
 
       for (const file of files) {
         const filePath = path.join(tempDir, 'docs', 'api', file);
-        await fs.promises.writeFile(filePath, `# ${file.replace('.md', '')}\n\nModule.`);
+        const moduleName = file.replace('.md', '');
+        await fs.promises.writeFile(
+          filePath,
+          `# ${moduleName}\n\n_Main process_\n\nModule.\n\n## Methods\n\n### \`${moduleName}.test()\`\n\nTest.`
+        );
       }
 
       const result = await parseDocs({
@@ -296,7 +324,7 @@ Application module.
     it('should not find non-markdown files', async () => {
       await fs.promises.writeFile(
         path.join(tempDir, 'docs', 'api', 'app.md'),
-        '# app\n\nModule.',
+        '# app\n\n_Main process_\n\nModule.\n\n## Methods\n\n### `app.test()`\n\nTest.',
       );
       await fs.promises.writeFile(
         path.join(tempDir, 'docs', 'api', 'README.txt'),
@@ -320,7 +348,7 @@ Application module.
     it('should handle structures subdirectory separately', async () => {
       await fs.promises.writeFile(
         path.join(tempDir, 'docs', 'api', 'app.md'),
-        '# app\n\nModule.',
+        '# app\n\n_Main process_\n\nModule.\n\n## Methods\n\n### `app.test()`\n\nTest.',
       );
       await fs.promises.writeFile(
         path.join(tempDir, 'docs', 'api', 'structures', 'point.md'),
