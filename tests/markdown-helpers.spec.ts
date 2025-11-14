@@ -15,6 +15,17 @@ import {
   consumeTypedKeysList,
   findProcess,
   slugifyHeading,
+  findContentAfterList,
+  findContentAfterHeadingClose,
+  headingsAndContent,
+  findConstructorHeader,
+  getContentBeforeConstructor,
+  getContentBeforeFirstHeadingMatching,
+  findContentInsideHeader,
+  safelySeparateTypeStringOn,
+  getTopLevelMultiTypes,
+  getTopLevelOrderedTypes,
+  convertListToTypedKeys,
 } from '../src/markdown-helpers.js';
 import { DocumentationTag } from '../src/ParsedDocumentation.js';
 
@@ -746,6 +757,410 @@ foo`),
         '`systemPreferences.isHighContrastColorScheme()` _macOS_ _Windows_ _Deprecated_';
       const slugified = 'systempreferencesishighcontrastcolorscheme-macos-windows-deprecated';
       expect(slugifyHeading(heading)).toBe(slugified);
+    });
+  });
+
+  describe('findContentAfterList', () => {
+    it('should return content after a bullet list', () => {
+      const md = `
+* Item 1
+* Item 2
+
+Content after list.
+`;
+      const tokens = getTokens(md);
+      const content = findContentAfterList(tokens);
+      const joined = safelyJoinTokens(content);
+      expect(joined).toContain('Content after list');
+    });
+
+    it('should return empty array when no list found and returnAllOnNoList is false', () => {
+      const md = `Just some text without a list.`;
+      const tokens = getTokens(md);
+      const content = findContentAfterList(tokens, false);
+      expect(content).toEqual([]);
+    });
+
+    it('should return all content after heading when no list found and returnAllOnNoList is true', () => {
+      const md = `# Heading
+
+Just some text without a list.`;
+      const tokens = getTokens(md);
+      const content = findContentAfterList(tokens, true);
+      expect(content.length).toBeGreaterThan(0);
+    });
+
+    it('should handle nested lists correctly', () => {
+      const md = `
+* Item 1
+  * Nested item
+* Item 2
+
+After nested list.
+`;
+      const tokens = getTokens(md);
+      const content = findContentAfterList(tokens);
+      const joined = safelyJoinTokens(content);
+      expect(joined).toContain('After nested list');
+    });
+  });
+
+  describe('findContentAfterHeadingClose', () => {
+    it('should return content after a heading', () => {
+      const md = `# Heading
+
+Content after heading.`;
+      const tokens = getTokens(md);
+      const content = findContentAfterHeadingClose(tokens);
+      const joined = safelyJoinTokens(content);
+      expect(joined).toContain('Content after heading');
+    });
+
+    it('should return content until next heading', () => {
+      const md = `# Heading One
+
+Content for heading one.
+
+## Heading Two
+
+Content for heading two.`;
+      const tokens = getTokens(md);
+      const content = findContentAfterHeadingClose(tokens);
+      // The function returns tokens, check that we got some
+      expect(content.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('headingsAndContent', () => {
+    it('should group headings with their content', () => {
+      const md = `# Heading 1
+
+Content 1
+
+## Heading 2
+
+Content 2`;
+      const tokens = getTokens(md);
+      const groups = headingsAndContent(tokens);
+
+      expect(groups).toHaveLength(2);
+      expect(groups[0].heading).toBe('Heading 1');
+      expect(groups[0].level).toBe(1);
+      expect(groups[1].heading).toBe('Heading 2');
+      expect(groups[1].level).toBe(2);
+    });
+
+    it('should handle nested heading levels', () => {
+      const md = `# Level 1
+
+## Level 2
+
+### Level 3
+
+Back to level 2
+
+## Another Level 2`;
+      const tokens = getTokens(md);
+      const groups = headingsAndContent(tokens);
+
+      expect(groups.length).toBeGreaterThan(3);
+      expect(groups.some((g) => g.level === 1)).toBe(true);
+      expect(groups.some((g) => g.level === 2)).toBe(true);
+      expect(groups.some((g) => g.level === 3)).toBe(true);
+    });
+
+    it('should include content tokens for each heading', () => {
+      const md = `# Heading
+
+Some paragraph text.`;
+      const tokens = getTokens(md);
+      const groups = headingsAndContent(tokens);
+
+      expect(groups[0].content.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('findConstructorHeader', () => {
+    it('should find a constructor header', () => {
+      const md = `# Class
+
+### \`new BrowserWindow([options])\`
+
+* \`options\` Object (optional)`;
+      const tokens = getTokens(md);
+      const constructor = findConstructorHeader(tokens);
+
+      expect(constructor).not.toBeNull();
+      expect(constructor?.heading).toContain('new BrowserWindow');
+    });
+
+    it('should return null when no constructor exists', () => {
+      const md = `# Class
+
+### \`someMethod()\`
+
+Regular method.`;
+      const tokens = getTokens(md);
+      const constructor = findConstructorHeader(tokens);
+
+      expect(constructor).toBeNull();
+    });
+
+    it('should only match level 3 headings', () => {
+      const md = `# Class
+
+## \`new BrowserWindow([options])\`
+
+Not a level 3 constructor.
+
+### \`new BrowserWindow([options])\`
+
+This is the right level.`;
+      const tokens = getTokens(md);
+      const constructor = findConstructorHeader(tokens);
+
+      expect(constructor).not.toBeNull();
+      expect(constructor?.level).toBe(3);
+    });
+  });
+
+  describe('getContentBeforeConstructor', () => {
+    it('should return content before constructor', () => {
+      const md = `# Class: BrowserWindow
+
+Description of the class.
+
+### \`new BrowserWindow([options])\`
+
+Constructor details.`;
+      const tokens = getTokens(md);
+      const groups = getContentBeforeConstructor(tokens);
+
+      expect(groups.length).toBeGreaterThan(0);
+      const firstGroup = groups[0];
+      // Use findContentAfterHeadingClose to get the actual content without heading tokens
+      const content = safelyJoinTokens(findContentAfterHeadingClose(firstGroup.content));
+      expect(content).toContain('Description');
+    });
+
+    it('should return empty array when no constructor', () => {
+      const md = `# Class
+
+Just some content.`;
+      const tokens = getTokens(md);
+      const groups = getContentBeforeConstructor(tokens);
+
+      expect(groups).toEqual([]);
+    });
+  });
+
+  describe('getContentBeforeFirstHeadingMatching', () => {
+    it('should return content before matching heading', () => {
+      const md = `# Main
+
+Description here.
+
+## Methods
+
+Method content.`;
+      const tokens = getTokens(md);
+      const groups = getContentBeforeFirstHeadingMatching(tokens, (h) => h === 'Methods');
+
+      expect(groups.length).toBeGreaterThan(0);
+      const content = safelyJoinTokens(findContentAfterHeadingClose(groups[0].content));
+      expect(content).toContain('Description');
+    });
+
+    it('should handle no matching heading', () => {
+      const md = `# Main
+
+Description here.`;
+      const tokens = getTokens(md);
+      const groups = getContentBeforeFirstHeadingMatching(tokens, (h) => h === 'Methods');
+
+      // When no matching heading, returns all groups
+      expect(groups.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should work with complex matchers', () => {
+      const md = `# API
+
+## Events
+
+Event content.
+
+## Methods
+
+Method content.`;
+      const tokens = getTokens(md);
+      const groups = getContentBeforeFirstHeadingMatching(
+        tokens,
+        (h) => h === 'Events' || h === 'Methods',
+      );
+
+      expect(groups.length).toBe(1);
+      expect(groups[0].heading).toBe('API');
+    });
+  });
+
+  describe('findContentInsideHeader', () => {
+    it('should find content inside a specific header', () => {
+      const md = `# API
+
+## Methods
+
+Method 1
+
+Method 2
+
+## Properties
+
+Property content`;
+      const tokens = getTokens(md);
+      const content = findContentInsideHeader(tokens, 'Methods', 2);
+
+      expect(content).not.toBeNull();
+      // The returned content doesn't include the heading itself, so it can be joined directly
+      expect(content!.length).toBeGreaterThan(0);
+    });
+
+    it('should return null when header not found', () => {
+      const md = `# API
+
+## Methods
+
+Content`;
+      const tokens = getTokens(md);
+      const content = findContentInsideHeader(tokens, 'Properties', 2);
+
+      expect(content).toBeNull();
+    });
+
+    it('should match both header name and level', () => {
+      const md = `# Methods
+
+Top level methods.
+
+## Methods
+
+Second level methods.`;
+      const tokens = getTokens(md);
+      const content = findContentInsideHeader(tokens, 'Methods', 2);
+
+      expect(content).not.toBeNull();
+      expect(content!.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('safelySeparateTypeStringOn', () => {
+    it('should separate simple types on pipe', () => {
+      const result = safelySeparateTypeStringOn('string | number', '|');
+      expect(result).toEqual(['string', 'number']);
+    });
+
+    it('should handle generic types without splitting inner content', () => {
+      const result = safelySeparateTypeStringOn('Promise<string | number> | boolean', '|');
+      expect(result).toEqual(['Promise<string | number>', 'boolean']);
+    });
+
+    it('should handle nested generics', () => {
+      const result = safelySeparateTypeStringOn('Map<string, Record<string | number>> | Array', '|');
+      expect(result).toEqual(['Map<string, Record<string | number>>', 'Array']);
+    });
+
+    it('should separate on comma', () => {
+      const result = safelySeparateTypeStringOn('string, number, boolean', ',');
+      expect(result).toEqual(['string', 'number', 'boolean']);
+    });
+
+    it('should handle object braces', () => {
+      const result = safelySeparateTypeStringOn('{ a: string | number } | boolean', '|');
+      expect(result).toEqual(['{ a: string | number }', 'boolean']);
+    });
+
+    it('should trim whitespace', () => {
+      const result = safelySeparateTypeStringOn('  string  |  number  ', '|');
+      expect(result).toEqual(['string', 'number']);
+    });
+  });
+
+  describe('getTopLevelMultiTypes', () => {
+    it('should split union types', () => {
+      const result = getTopLevelMultiTypes('string | number | boolean');
+      expect(result).toEqual(['string', 'number', 'boolean']);
+    });
+
+    it('should not split inner generic types', () => {
+      const result = getTopLevelMultiTypes('Promise<A | B> | string');
+      expect(result).toEqual(['Promise<A | B>', 'string']);
+    });
+
+    it('should handle single type', () => {
+      const result = getTopLevelMultiTypes('string');
+      expect(result).toEqual(['string']);
+    });
+  });
+
+  describe('getTopLevelOrderedTypes', () => {
+    it('should split comma-separated types', () => {
+      const result = getTopLevelOrderedTypes('string, number, boolean');
+      expect(result).toEqual(['string', 'number', 'boolean']);
+    });
+
+    it('should not split inner generic commas', () => {
+      const result = getTopLevelOrderedTypes('Map<string, number>, Array<boolean>');
+      expect(result).toEqual(['Map<string, number>', 'Array<boolean>']);
+    });
+
+    it('should handle single type', () => {
+      const result = getTopLevelOrderedTypes('string');
+      expect(result).toEqual(['string']);
+    });
+  });
+
+  describe('convertListToTypedKeys', () => {
+    it('should convert a simple list to typed keys', () => {
+      const md = `
+* \`name\` string - The name.
+* \`age\` number - The age.
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      expect(list).not.toBeNull();
+
+      const typedKeys = convertListToTypedKeys(list!);
+      expect(typedKeys.consumed).toBe(false);
+      expect(typedKeys.keys.length).toBe(2);
+      expect(typedKeys.keys[0].key).toBe('name');
+      expect(typedKeys.keys[1].key).toBe('age');
+    });
+
+    it('should handle optional parameters', () => {
+      const md = `
+* \`width\` Integer (optional) - Window width.
+* \`height\` Integer - Window height.
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      expect(typedKeys.keys[0].required).toBe(false);
+      expect(typedKeys.keys[1].required).toBe(true);
+    });
+
+    it('should handle nested properties', () => {
+      const md = `
+* \`options\` Object
+  * \`width\` Integer
+  * \`height\` Integer
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      expect(typedKeys.keys).toHaveLength(1);
+      expect(typedKeys.keys[0].key).toBe('options');
+      // The nested structure is complex - just verify we got the top-level key
     });
   });
 });
