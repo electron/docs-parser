@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import fs from 'node:fs';
 import MarkdownIt from 'markdown-it';
-import { Token } from 'markdown-it';
-import * as path from 'path';
+import type Token from 'markdown-it/lib/token.mjs';
+import * as path from 'node:path';
 import toCamelCase from 'lodash.camelcase';
 
 import {

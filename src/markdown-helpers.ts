@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Token } from 'markdown-it';
+import type Token from 'markdown-it/lib/token.mjs';
 import {
   TypeInformation,
   PropertyDocumentationBlock,
@@ -875,10 +875,10 @@ const unconsumedTypedKeyList = <T extends TypedKey[] | null>(
   keys: T,
 ): T extends null ? null : TypedKeyList => {
   return keys
-    ? {
+    ? ({
         consumed: false,
         keys,
-      }
+      } as any)
     : (null as any);
 };
 

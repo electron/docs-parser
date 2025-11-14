@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Token } from 'markdown-it';
+import type Token from 'markdown-it/lib/token.mjs';
 
 import {
   parseHeadingTags,
