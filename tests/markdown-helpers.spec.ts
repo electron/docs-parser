@@ -1064,7 +1064,10 @@ Second level methods.`;
     });
 
     it('should handle nested generics', () => {
-      const result = safelySeparateTypeStringOn('Map<string, Record<string | number>> | Array', '|');
+      const result = safelySeparateTypeStringOn(
+        'Map<string, Record<string | number>> | Array',
+        '|',
+      );
       expect(result).toEqual(['Map<string, Record<string | number>>', 'Array']);
     });
 
@@ -1161,6 +1164,292 @@ Second level methods.`;
       expect(typedKeys.keys).toHaveLength(1);
       expect(typedKeys.keys[0].key).toBe('options');
       // The nested structure is complex - just verify we got the top-level key
+    });
+
+    it('should handle list items with invalid structure but nested list', () => {
+      const md = `
+* Some description without proper format
+  * \`validKey\` String - Valid nested key
+  * \`anotherKey\` Number - Another valid key
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      expect(typedKeys.keys).toHaveLength(2);
+      expect(typedKeys.keys[0].key).toBe('validKey');
+      expect(typedKeys.keys[1].key).toBe('anotherKey');
+    });
+  });
+
+  describe('extractStringEnum', () => {
+    it('should handle unexpected token at start', () => {
+      const result = extractStringEnum('values includes @invalid');
+      expect(result).toBeNull();
+    });
+
+    it('should throw on unexpected separator', () => {
+      expect(() => extractStringEnum('values includes "foo" @ "bar"')).toThrow(
+        /Unexpected separator token/,
+      );
+    });
+
+    it('should throw on unexpected token after quote close', () => {
+      expect(() => extractStringEnum('values includes "foo"!')).toThrow(
+        /Unexpected separator token/,
+      );
+    });
+
+    it('should throw on unclosed quote', () => {
+      expect(() => extractStringEnum('values includes "foo')).toThrow(
+        /Unexpected early termination/,
+      );
+    });
+
+    it('should return null if no values found', () => {
+      const result = extractStringEnum('can be ');
+      expect(result).toBeNull();
+    });
+
+    it('should handle strikethrough wrapped deprecated values', () => {
+      const result = extractStringEnum('values includes "foo", ~"bar"~');
+      expect(result).toHaveLength(2);
+      expect(result![0].value).toBe('foo');
+      expect(result![1].value).toBe('bar');
+    });
+
+    it('should throw on mismatched wrapper unwrapping', () => {
+      expect(() => extractStringEnum('values includes ~"foo"!')).toThrow(
+        /Expected an unwrapping token that matched/,
+      );
+    });
+
+    it('should handle terminating with period', () => {
+      const result = extractStringEnum('can be "foo".');
+      expect(result).toHaveLength(1);
+      expect(result![0].value).toBe('foo');
+    });
+
+    it('should handle terminating with semicolon', () => {
+      const result = extractStringEnum('can be "foo";');
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle terminating with hyphen', () => {
+      const result = extractStringEnum('can be "foo" -');
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle or an Object terminator', () => {
+      const result = extractStringEnum('can be "foo", or an Object');
+      expect(result).toHaveLength(1);
+      expect(result![0].value).toBe('foo');
+    });
+
+    it('should handle , or an Object terminator', () => {
+      const result = extractStringEnum('can be "foo", or an Object');
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle suffixes to ignore like (Deprecated)', () => {
+      const result = extractStringEnum('can be "foo" (Deprecated), "bar"');
+      expect(result).toHaveLength(2);
+      expect(result![0].value).toBe('foo');
+      expect(result![1].value).toBe('bar');
+    });
+
+    it('should gracefully terminate after comma when encountering unquoted text', () => {
+      const result = extractStringEnum('can be "foo", then other stuff');
+      expect(result).toHaveLength(1);
+      expect(result![0].value).toBe('foo');
+    });
+  });
+
+  describe('extractReturnType', () => {
+    it('should return null return type when no Returns pattern found', () => {
+      const tokens = getTokens('This is just a description without returns');
+      const result = extractReturnType(tokens);
+      expect(result.parsedReturnType).toBeNull();
+      expect(result.parsedDescription).toBe('This is just a description without returns');
+    });
+
+    it('should return null return type when Returns keyword present but no backticks', () => {
+      const tokens = getTokens('Returns something without backticks');
+      const result = extractReturnType(tokens);
+      expect(result.parsedReturnType).toBeNull();
+      expect(result.parsedDescription).toBe('Returns something without backticks');
+    });
+
+    it('should handle returns with continuous sentence', () => {
+      const tokens = getTokens('Returns `String` the value');
+      const result = extractReturnType(tokens);
+      expect(result.parsedReturnType).not.toBeNull();
+      expect(result.parsedReturnType!.type).toBe('String');
+      expect(result.parsedDescription).toBe('the value');
+    });
+
+    it('should throw error on incorrectly formatted type union', () => {
+      const tokens = getTokens('Returns `A` | `B`');
+      expect(() => extractReturnType(tokens)).toThrow(
+        /Type unions must be fully enclosed in backticks/,
+      );
+    });
+
+    it('should handle returns with failed list parsing', () => {
+      const tokens = getTokens('Returns `Object`\n\n* invalid list item');
+      const result = extractReturnType(tokens);
+      expect(result.parsedReturnType).not.toBeNull();
+      expect(result.parsedReturnType!.type).toBe('Object');
+    });
+
+    it('should handle description starting with pipe character', () => {
+      const tokens = getTokens('Returns `String` | another thing');
+      expect(() => extractReturnType(tokens)).toThrow(
+        /Type unions must be fully enclosed in backticks/,
+      );
+    });
+  });
+
+  describe('rawTypeToTypeInformation edge cases', () => {
+    it('should handle Function type without subTypedKeys', () => {
+      const result = rawTypeToTypeInformation('Function', '', null);
+      expect(result.type).toBe('Function');
+      expect(result.parameters).toEqual([]);
+      expect(result.returns).toBeNull();
+    });
+
+    it('should handle Function type with subTypedKeys', () => {
+      const md = `
+* \`callback\` Function - The callback
+* \`event\` Event - The event object
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      const result = rawTypeToTypeInformation('Function', '', typedKeys);
+      expect(result.type).toBe('Function');
+      expect(result.parameters).toHaveLength(2);
+      expect(result.parameters![0].name).toBe('callback');
+      expect(result.parameters![1].name).toBe('event');
+      expect(result.returns).toBeNull();
+    });
+
+    it('should handle Object type without subTypedKeys', () => {
+      const result = rawTypeToTypeInformation('Object', '', null);
+      expect(result.type).toBe('Object');
+      expect(result.properties).toEqual([]);
+    });
+
+    it('should handle String type with subTypedKeys', () => {
+      const md = `
+* \`option1\` - First option
+* \`option2\` - Second option
+`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      const result = rawTypeToTypeInformation('String', '', typedKeys);
+      expect(result.type).toBe('String');
+      expect(result.possibleValues).toHaveLength(2);
+      expect(result.possibleValues![0].value).toBe('option1');
+    });
+
+    it('should handle Event<> with inner type', () => {
+      const result = rawTypeToTypeInformation('Event<CustomEvent>', '', null);
+      expect(result.type).toBe('Event');
+      expect(result.eventPropertiesReference).toBeDefined();
+      expect(result.eventPropertiesReference!.type).toBe('CustomEvent');
+    });
+
+    it('should throw on Event<> with both inner type and parameter list', () => {
+      const md = `* \`foo\` String`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      expect(() => rawTypeToTypeInformation('Event<CustomEvent>', '', typedKeys)).toThrow(
+        /Event<> should not have declared inner types AND a parameter list/,
+      );
+    });
+
+    it('should throw on Event<> with multiple inner types', () => {
+      expect(() => rawTypeToTypeInformation('Event<Type1, Type2>', '', null)).toThrow(
+        /Event<> should have at most one inner type/,
+      );
+    });
+
+    it('should throw on Event<> without inner type or parameter list', () => {
+      expect(() => rawTypeToTypeInformation('Event<>', '', null)).toThrow(
+        /Event<> declaration without a parameter list/,
+      );
+    });
+
+    it('should handle Event<> with parameter list', () => {
+      const md = `* \`detail\` String - Event detail`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      const result = rawTypeToTypeInformation('Event<>', '', typedKeys);
+      expect(result.type).toBe('Event');
+      expect(result.eventProperties).toHaveLength(1);
+      expect(result.eventProperties![0].name).toBe('detail');
+    });
+
+    it('should handle Function<> with generic types', () => {
+      const result = rawTypeToTypeInformation('Function<String, Number, Boolean>', '', null);
+      expect(result.type).toBe('Function');
+      expect(result.parameters).toHaveLength(2);
+      expect(result.returns!.type).toBe('Boolean');
+    });
+
+    it('should handle Function<> without generic params falling back to subTypedKeys', () => {
+      const md = `* \`arg1\` String - First arg`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      const result = rawTypeToTypeInformation('Function<Boolean>', '', typedKeys);
+      expect(result.type).toBe('Function');
+      expect(result.parameters).toHaveLength(1);
+      expect(result.parameters![0].name).toBe('arg1');
+      expect(result.returns!.type).toBe('Boolean');
+    });
+
+    it('should throw on generic type without inner types', () => {
+      expect(() => rawTypeToTypeInformation('GenericType<>', '', null)).toThrow(
+        /should have at least one inner type/,
+      );
+    });
+
+    it('should handle generic types with Object inner type and subTypedKeys', () => {
+      const md = `* \`prop\` String - Property`;
+      const tokens = getTokens(md);
+      const list = findNextList(tokens);
+      const typedKeys = convertListToTypedKeys(list!);
+
+      const result = rawTypeToTypeInformation('Promise<Object>', '', typedKeys);
+      expect(result.type).toBe('Promise');
+      expect(result.innerTypes).toHaveLength(1);
+      expect(result.innerTypes![0].type).toBe('Object');
+      expect(result.innerTypes![0].properties).toHaveLength(1);
+    });
+  });
+
+  describe('findContentAfterList', () => {
+    it('should return content starting from heading_close when returnAllOnNoList=true and no list found', () => {
+      const md = `
+### Heading
+
+Some content without a list
+
+#### Next Heading
+`;
+      const tokens = getTokens(md);
+      const result = findContentAfterList(tokens, true);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 });
