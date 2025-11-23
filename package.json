@@ -18,7 +18,7 @@
     "prepublishOnly": "npx yarn build",
     "prettier:check": "prettier --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "test": "vitest run",
+    "test": "tsc --noEmit -p tests && vitest run",
     "prepare": "husky"
   },
   "bin": {
