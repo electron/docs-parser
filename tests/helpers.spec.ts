@@ -1,4 +1,4 @@
-import { extendError } from '../src/helpers';
+import { extendError } from '../src/helpers.js';
 
 import chalk from 'chalk';
 import { describe, expect, it } from 'vitest';
