@@ -15,8 +15,8 @@ import {
   consumeTypedKeysList,
   findProcess,
   slugifyHeading,
-} from '../src/markdown-helpers';
-import { DocumentationTag } from '../src/ParsedDocumentation';
+} from '../src/markdown-helpers.js';
+import { DocumentationTag } from '../src/ParsedDocumentation.js';
 
 const getTokens = (md: string) => {
   const markdown = new MarkdownIt({ html: true });
