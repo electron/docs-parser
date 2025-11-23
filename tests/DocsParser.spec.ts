@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DocsParser } from '../src/DocsParser.js';
+import type { ModuleDocumentationContainer } from '../src/ParsedDocumentation.js';
 
 describe('DocsParser', () => {
   let tempDir: string;
@@ -66,8 +67,8 @@ A \`string\` property that indicates the current application's name.
       expect(appModule).toBeDefined();
       expect(appModule?.type).toBe('Module');
       // Just check that process information is present
-      expect(appModule?.process).toBeDefined();
-      expect(appModule?.process?.main).toBe(true);
+      expect((appModule as ModuleDocumentationContainer).process).toBeDefined();
+      expect((appModule as ModuleDocumentationContainer).process.main).toBe(true);
       expect(appModule?.description).toContain('Control your application');
 
       if (appModule && appModule.type === 'Module') {
@@ -328,8 +329,8 @@ Expose API to renderer.
       const contextBridgeModule = result.find((m) => m.name === 'contextBridge');
 
       // Just verify process information is parsed
-      expect(appModule?.process).toBeDefined();
-      expect(contextBridgeModule?.process).toBeDefined();
+      expect((appModule as ModuleDocumentationContainer).process).toBeDefined();
+      expect((contextBridgeModule as ModuleDocumentationContainer).process).toBeDefined();
     });
   });
 

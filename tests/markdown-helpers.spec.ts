@@ -27,7 +27,14 @@ import {
   getTopLevelOrderedTypes,
   convertListToTypedKeys,
 } from '../src/markdown-helpers.js';
-import { DocumentationTag } from '../src/ParsedDocumentation.js';
+import {
+  DocumentationTag,
+  type DetailedFunctionType,
+  type DetailedObjectType,
+  type DetailedStringType,
+  type DetailedEventType,
+  type DetailedEventReferenceType,
+} from '../src/ParsedDocumentation.js';
 
 const getTokens = (md: string) => {
   const markdown = new MarkdownIt({ html: true });
@@ -1314,8 +1321,8 @@ Second level methods.`;
     it('should handle Function type without subTypedKeys', () => {
       const result = rawTypeToTypeInformation('Function', '', null);
       expect(result.type).toBe('Function');
-      expect(result.parameters).toEqual([]);
-      expect(result.returns).toBeNull();
+      expect((result as DetailedFunctionType).parameters).toEqual([]);
+      expect((result as DetailedFunctionType).returns).toBeNull();
     });
 
     it('should handle Function type with subTypedKeys', () => {
@@ -1329,16 +1336,16 @@ Second level methods.`;
 
       const result = rawTypeToTypeInformation('Function', '', typedKeys);
       expect(result.type).toBe('Function');
-      expect(result.parameters).toHaveLength(2);
-      expect(result.parameters![0].name).toBe('callback');
-      expect(result.parameters![1].name).toBe('event');
-      expect(result.returns).toBeNull();
+      expect((result as DetailedFunctionType).parameters).toHaveLength(2);
+      expect((result as DetailedFunctionType).parameters[0].name).toBe('callback');
+      expect((result as DetailedFunctionType).parameters[1].name).toBe('event');
+      expect((result as DetailedFunctionType).returns).toBeNull();
     });
 
     it('should handle Object type without subTypedKeys', () => {
       const result = rawTypeToTypeInformation('Object', '', null);
       expect(result.type).toBe('Object');
-      expect(result.properties).toEqual([]);
+      expect((result as DetailedObjectType).properties).toEqual([]);
     });
 
     it('should handle String type with subTypedKeys', () => {
@@ -1352,15 +1359,15 @@ Second level methods.`;
 
       const result = rawTypeToTypeInformation('String', '', typedKeys);
       expect(result.type).toBe('String');
-      expect(result.possibleValues).toHaveLength(2);
-      expect(result.possibleValues![0].value).toBe('option1');
+      expect((result as DetailedStringType).possibleValues).toHaveLength(2);
+      expect((result as DetailedStringType).possibleValues![0].value).toBe('option1');
     });
 
     it('should handle Event<> with inner type', () => {
       const result = rawTypeToTypeInformation('Event<CustomEvent>', '', null);
       expect(result.type).toBe('Event');
-      expect(result.eventPropertiesReference).toBeDefined();
-      expect(result.eventPropertiesReference!.type).toBe('CustomEvent');
+      expect((result as DetailedEventReferenceType).eventPropertiesReference).toBeDefined();
+      expect((result as DetailedEventReferenceType).eventPropertiesReference.type).toBe('CustomEvent');
     });
 
     it('should throw on Event<> with both inner type and parameter list', () => {
@@ -1394,15 +1401,15 @@ Second level methods.`;
 
       const result = rawTypeToTypeInformation('Event<>', '', typedKeys);
       expect(result.type).toBe('Event');
-      expect(result.eventProperties).toHaveLength(1);
-      expect(result.eventProperties![0].name).toBe('detail');
+      expect((result as DetailedEventType).eventProperties).toHaveLength(1);
+      expect((result as DetailedEventType).eventProperties[0].name).toBe('detail');
     });
 
     it('should handle Function<> with generic types', () => {
       const result = rawTypeToTypeInformation('Function<String, Number, Boolean>', '', null);
       expect(result.type).toBe('Function');
-      expect(result.parameters).toHaveLength(2);
-      expect(result.returns!.type).toBe('Boolean');
+      expect((result as DetailedFunctionType).parameters).toHaveLength(2);
+      expect((result as DetailedFunctionType).returns!.type).toBe('Boolean');
     });
 
     it('should handle Function<> without generic params falling back to subTypedKeys', () => {
@@ -1413,9 +1420,9 @@ Second level methods.`;
 
       const result = rawTypeToTypeInformation('Function<Boolean>', '', typedKeys);
       expect(result.type).toBe('Function');
-      expect(result.parameters).toHaveLength(1);
-      expect(result.parameters![0].name).toBe('arg1');
-      expect(result.returns!.type).toBe('Boolean');
+      expect((result as DetailedFunctionType).parameters).toHaveLength(1);
+      expect((result as DetailedFunctionType).parameters[0].name).toBe('arg1');
+      expect((result as DetailedFunctionType).returns!.type).toBe('Boolean');
     });
 
     it('should throw on generic type without inner types', () => {
@@ -1434,7 +1441,7 @@ Second level methods.`;
       expect(result.type).toBe('Promise');
       expect(result.innerTypes).toHaveLength(1);
       expect(result.innerTypes![0].type).toBe('Object');
-      expect(result.innerTypes![0].properties).toHaveLength(1);
+      expect((result.innerTypes![0] as DetailedObjectType).properties).toHaveLength(1);
     });
   });
 

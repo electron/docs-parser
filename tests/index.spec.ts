@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseDocs } from '../src/index';
+import { parseDocs } from '../src/index.js';
+import type {
+  ModuleDocumentationContainer,
+  ClassDocumentationContainer,
+  StructureDocumentationContainer,
+  ElementDocumentationContainer,
+} from '../src/ParsedDocumentation.js';
+
+type ParsedItem = ModuleDocumentationContainer | ClassDocumentationContainer | StructureDocumentationContainer | ElementDocumentationContainer;
 
 describe('index (public API)', () => {
   let tempDir: string;
@@ -48,7 +56,7 @@ Quit the application.
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
 
-      const appModule = result.find((m) => m.name === 'app');
+      const appModule = result.find((m: ParsedItem) => m.name === 'app');
       expect(appModule).toBeDefined();
     });
 
@@ -76,7 +84,7 @@ Test method.
       });
 
       // In single package mode, classes are not nested in modules
-      const testClass = result.find((item) => item.name === 'TestClass');
+      const testClass = result.find((item: ParsedItem) => item.name === 'TestClass');
       expect(testClass).toBeDefined();
       expect(testClass?.type).toBe('Class');
     });
@@ -114,7 +122,7 @@ Test method.
       });
 
       // In multi package mode, classes are nested in modules
-      const testModule = result.find((item) => item.name === 'TestModule');
+      const testModule = result.find((item: ParsedItem) => item.name === 'TestModule');
       expect(testModule).toBeDefined();
       expect(testModule?.type).toBe('Module');
 
@@ -140,7 +148,7 @@ Test method.
         moduleVersion: '1.0.0',
       });
 
-      const pointStructure = result.find((s) => s.name === 'Point');
+      const pointStructure = result.find((s: ParsedItem) => s.name === 'Point');
       expect(pointStructure).toBeDefined();
       expect(pointStructure?.type).toBe('Structure');
     });
@@ -175,8 +183,8 @@ Quit the app.
         moduleVersion: '1.0.0',
       });
 
-      expect(result.some((item) => item.name === 'app')).toBe(true);
-      expect(result.some((item) => item.name === 'Options')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.name === 'app')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.name === 'Options')).toBe(true);
     });
 
     it('should use README when useReadme is true', async () => {
@@ -203,7 +211,7 @@ Initialize the package.
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThan(0);
 
-      const packageModule = result.find((m) => m.name === 'MyPackage');
+      const packageModule = result.find((m: ParsedItem) => m.name === 'MyPackage');
       expect(packageModule).toBeDefined();
     });
 
@@ -293,9 +301,9 @@ Quit the app.
       });
 
       expect(result.length).toBeGreaterThanOrEqual(3);
-      expect(result.some((item) => item.name === 'app')).toBe(true);
-      expect(result.some((item) => item.name === 'BrowserWindow')).toBe(true);
-      expect(result.some((item) => item.name === 'dialog')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.name === 'app')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.name === 'BrowserWindow')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.name === 'dialog')).toBe(true);
     });
   });
 
@@ -363,7 +371,7 @@ Quit the app.
 
       // Should have parsed both api files and structures
       expect(result.length).toBeGreaterThanOrEqual(1);
-      expect(result.some((item) => item.type === 'Module' || item.type === 'Structure')).toBe(true);
+      expect(result.some((item: ParsedItem) => item.type === 'Module' || item.type === 'Structure')).toBe(true);
     });
   });
 });
