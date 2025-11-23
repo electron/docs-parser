@@ -126,10 +126,9 @@ Test method.
       expect(testModule).toBeDefined();
       expect(testModule?.type).toBe('Module');
 
-      if (testModule && testModule.type === 'Module') {
-        expect(testModule.exportedClasses).toHaveLength(1);
-        expect(testModule.exportedClasses[0].name).toBe('TestClass');
-      }
+      const module = testModule as ModuleDocumentationContainer;
+      expect(module.exportedClasses).toHaveLength(1);
+      expect(module.exportedClasses[0].name).toBe('TestClass');
     });
 
     it('should parse structures from structures directory', async () => {

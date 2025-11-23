@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DocsParser } from '../src/DocsParser.js';
-import type { ModuleDocumentationContainer } from '../src/ParsedDocumentation.js';
+import type {
+  ModuleDocumentationContainer,
+  ClassDocumentationContainer,
+  ElementDocumentationContainer,
+  StructureDocumentationContainer,
+} from '../src/ParsedDocumentation.js';
 
 describe('DocsParser', () => {
   let tempDir: string;
@@ -71,16 +76,15 @@ A \`string\` property that indicates the current application's name.
       expect((appModule as ModuleDocumentationContainer).process.main).toBe(true);
       expect(appModule?.description).toContain('Control your application');
 
-      if (appModule && appModule.type === 'Module') {
-        expect(appModule.events).toHaveLength(1);
-        expect(appModule.events[0].name).toBe('ready');
+      const module = appModule as ModuleDocumentationContainer;
+      expect(module.events).toHaveLength(1);
+      expect(module.events[0].name).toBe('ready');
 
-        expect(appModule.methods).toHaveLength(1);
-        expect(appModule.methods[0].name).toBe('quit');
+      expect(module.methods).toHaveLength(1);
+      expect(module.methods[0].name).toBe('quit');
 
-        expect(appModule.properties).toHaveLength(1);
-        expect(appModule.properties[0].name).toBe('name');
-      }
+      expect(module.properties).toHaveLength(1);
+      expect(module.properties[0].name).toBe('name');
     });
 
     it('should parse a class documentation', async () => {
@@ -133,20 +137,19 @@ Emitted when the window is closed.
       expect(browserWindowClass).toBeDefined();
       expect(browserWindowClass?.type).toBe('Class');
 
-      if (browserWindowClass && browserWindowClass.type === 'Class') {
-        expect(browserWindowClass.constructorMethod).toBeDefined();
-        expect(browserWindowClass.constructorMethod?.parameters).toHaveLength(1);
+      const cls = browserWindowClass as ClassDocumentationContainer;
+      expect(cls.constructorMethod).toBeDefined();
+      expect(cls.constructorMethod!.parameters).toHaveLength(1);
 
-        expect(browserWindowClass.instanceMethods).toHaveLength(2);
-        expect(browserWindowClass.instanceMethods[0].name).toBe('close');
-        expect(browserWindowClass.instanceMethods[1].name).toBe('show');
+      expect(cls.instanceMethods).toHaveLength(2);
+      expect(cls.instanceMethods[0].name).toBe('close');
+      expect(cls.instanceMethods[1].name).toBe('show');
 
-        expect(browserWindowClass.instanceProperties).toHaveLength(1);
-        expect(browserWindowClass.instanceProperties[0].name).toBe('id');
+      expect(cls.instanceProperties).toHaveLength(1);
+      expect(cls.instanceProperties[0].name).toBe('id');
 
-        expect(browserWindowClass.instanceEvents).toHaveLength(1);
-        expect(browserWindowClass.instanceEvents[0].name).toBe('closed');
-      }
+      expect(cls.instanceEvents).toHaveLength(1);
+      expect(cls.instanceEvents[0].name).toBe('closed');
     });
 
     it('should parse a class with static methods and properties', async () => {
@@ -190,14 +193,13 @@ Pops up this menu.
       const menuClass = result.find((c) => c.name === 'Menu');
       expect(menuClass).toBeDefined();
 
-      if (menuClass && menuClass.type === 'Class') {
-        expect(menuClass.staticMethods).toHaveLength(1);
-        expect(menuClass.staticMethods[0].name).toBe('buildFromTemplate');
-        expect(menuClass.staticMethods[0].returns).toBeDefined();
+      const cls = menuClass as ClassDocumentationContainer;
+      expect(cls.staticMethods).toHaveLength(1);
+      expect(cls.staticMethods[0].name).toBe('buildFromTemplate');
+      expect(cls.staticMethods[0].returns).toBeDefined();
 
-        expect(menuClass.staticProperties).toHaveLength(1);
-        expect(menuClass.staticProperties[0].name).toBe('applicationMenu');
-      }
+      expect(cls.staticProperties).toHaveLength(1);
+      expect(cls.staticProperties[0].name).toBe('applicationMenu');
     });
 
     it('should handle module with exported class in multi-package mode', async () => {
@@ -275,16 +277,15 @@ Fired when the navigation is done.
       expect(webviewElement?.type).toBe('Element');
       expect(webviewElement?.extends).toBe('HTMLElement');
 
-      if (webviewElement && webviewElement.type === 'Element') {
-        expect(webviewElement.methods).toHaveLength(1);
-        expect(webviewElement.methods[0].name).toBe('loadURL');
+      const element = webviewElement as ElementDocumentationContainer;
+      expect(element.methods).toHaveLength(1);
+      expect(element.methods[0].name).toBe('loadURL');
 
-        expect(webviewElement.properties).toHaveLength(1);
-        expect(webviewElement.properties[0].name).toBe('src');
+      expect(element.properties).toHaveLength(1);
+      expect(element.properties[0].name).toBe('src');
 
-        expect(webviewElement.events).toHaveLength(1);
-        expect(webviewElement.events[0].name).toBe('did-finish-load');
-      }
+      expect(element.events).toHaveLength(1);
+      expect(element.events[0].name).toBe('did-finish-load');
     });
 
     it('should handle process tags correctly', async () => {
@@ -356,14 +357,13 @@ Additional description after the property list.
       expect(rectangleStructure).toBeDefined();
       expect(rectangleStructure?.type).toBe('Structure');
 
-      if (rectangleStructure && rectangleStructure.type === 'Structure') {
-        expect(rectangleStructure.properties).toHaveLength(4);
-        expect(rectangleStructure.properties[0].name).toBe('x');
-        expect(rectangleStructure.properties[0].type).toBe('Integer');
-        expect(rectangleStructure.properties[1].name).toBe('y');
-        expect(rectangleStructure.properties[2].name).toBe('width');
-        expect(rectangleStructure.properties[3].name).toBe('height');
-      }
+      const struct = rectangleStructure as StructureDocumentationContainer;
+      expect(struct.properties).toHaveLength(4);
+      expect(struct.properties[0].name).toBe('x');
+      expect(struct.properties[0].type).toBe('Integer');
+      expect(struct.properties[1].name).toBe('y');
+      expect(struct.properties[2].name).toBe('width');
+      expect(struct.properties[3].name).toBe('height');
     });
 
     it('should parse a structure with optional properties', async () => {
@@ -380,13 +380,11 @@ Additional description after the property list.
       const parser = new DocsParser(tempDir, '1.0.0', [], [structurePath], 'single');
       const result = await parser.parse();
 
-      const optionsStructure = result.find((s) => s.name === 'Options');
+      const optionsStructure = result.find((s) => s.name === 'Options') as StructureDocumentationContainer;
 
-      if (optionsStructure && optionsStructure.type === 'Structure') {
-        expect(optionsStructure.properties[0].required).toBe(false);
-        expect(optionsStructure.properties[1].required).toBe(false);
-        expect(optionsStructure.properties[2].required).toBe(true);
-      }
+      expect(optionsStructure.properties[0].required).toBe(false);
+      expect(optionsStructure.properties[1].required).toBe(false);
+      expect(optionsStructure.properties[2].required).toBe(true);
     });
 
     it('should handle structure with extends clause', async () => {

@@ -30,9 +30,9 @@ describe('extendError', () => {
     expect(newError.stack).toBeNull();
   });
 
-  it('should handle error-like objects with custom properties', () => {
-    const customError = { message: 'custom error', stack: 'custom stack trace' };
-    const newError = extendError('prefix', customError);
+  it('should handle plain objects with message and stack properties', () => {
+    const errorLikeObject = { message: 'custom error', stack: 'custom stack trace' };
+    const newError = extendError('prefix', errorLikeObject);
     expect(newError.message).toEqual('prefix - custom error');
     expect(newError.stack).toContain(chalk.red('prefix'));
     expect(newError.stack).toContain('custom stack trace');
@@ -49,8 +49,6 @@ describe('extendError', () => {
     const originalStack = originalError.stack;
     const newError = extendError('wrapped', originalError);
     expect(newError.stack).toContain(chalk.red('wrapped'));
-    if (originalStack) {
-      expect(newError.stack).toContain(originalStack.split('\n').slice(1).join('\n'));
-    }
+    expect(newError.stack).toContain(originalStack!.split('\n').slice(1).join('\n'));
   });
 });
