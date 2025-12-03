@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import MarkdownIt from 'markdown-it';
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import {
   safelyJoinTokens,
@@ -1320,9 +1320,9 @@ Second level methods.`;
   describe('rawTypeToTypeInformation edge cases', () => {
     it('should handle Function type without subTypedKeys', () => {
       const result = rawTypeToTypeInformation('Function', '', null);
-      expect(result.type).toBe('Function');
-      expect((result as DetailedFunctionType).parameters).toEqual([]);
-      expect((result as DetailedFunctionType).returns).toBeNull();
+      assert(result.type === 'Function' && 'parameters' in result, 'Expected Function type');
+      expect(result.parameters).toEqual([]);
+      expect(result.returns).toBeNull();
     });
 
     it('should handle Function type with subTypedKeys', () => {
@@ -1335,17 +1335,17 @@ Second level methods.`;
       const typedKeys = convertListToTypedKeys(list!);
 
       const result = rawTypeToTypeInformation('Function', '', typedKeys);
-      expect(result.type).toBe('Function');
-      expect((result as DetailedFunctionType).parameters).toHaveLength(2);
-      expect((result as DetailedFunctionType).parameters[0].name).toBe('callback');
-      expect((result as DetailedFunctionType).parameters[1].name).toBe('event');
-      expect((result as DetailedFunctionType).returns).toBeNull();
+      assert(result.type === 'Function' && 'parameters' in result, 'Expected Function type');
+      expect(result.parameters).toHaveLength(2);
+      expect(result.parameters[0].name).toBe('callback');
+      expect(result.parameters[1].name).toBe('event');
+      expect(result.returns).toBeNull();
     });
 
     it('should handle Object type without subTypedKeys', () => {
       const result = rawTypeToTypeInformation('Object', '', null);
-      expect(result.type).toBe('Object');
-      expect((result as DetailedObjectType).properties).toEqual([]);
+      assert(result.type === 'Object' && 'properties' in result, 'Expected Object type');
+      expect(result.properties).toEqual([]);
     });
 
     it('should handle String type with subTypedKeys', () => {
@@ -1358,16 +1358,19 @@ Second level methods.`;
       const typedKeys = convertListToTypedKeys(list!);
 
       const result = rawTypeToTypeInformation('String', '', typedKeys);
-      expect(result.type).toBe('String');
-      expect((result as DetailedStringType).possibleValues).toHaveLength(2);
-      expect((result as DetailedStringType).possibleValues![0].value).toBe('option1');
+      assert(result.type === 'String' && 'possibleValues' in result, 'Expected String type');
+      expect(result.possibleValues).toHaveLength(2);
+      expect(result.possibleValues?.[0].value).toBe('option1');
     });
 
     it('should handle Event<> with inner type', () => {
       const result = rawTypeToTypeInformation('Event<CustomEvent>', '', null);
-      expect(result.type).toBe('Event');
-      expect((result as DetailedEventReferenceType).eventPropertiesReference).toBeDefined();
-      expect((result as DetailedEventReferenceType).eventPropertiesReference.type).toBe('CustomEvent');
+      assert(
+        result.type === 'Event' && 'eventPropertiesReference' in result,
+        'Expected Event type',
+      );
+      expect(result.eventPropertiesReference).toBeDefined();
+      expect(result.eventPropertiesReference.type).toBe('CustomEvent');
     });
 
     it('should throw on Event<> with both inner type and parameter list', () => {
@@ -1400,16 +1403,16 @@ Second level methods.`;
       const typedKeys = convertListToTypedKeys(list!);
 
       const result = rawTypeToTypeInformation('Event<>', '', typedKeys);
-      expect(result.type).toBe('Event');
-      expect((result as DetailedEventType).eventProperties).toHaveLength(1);
-      expect((result as DetailedEventType).eventProperties[0].name).toBe('detail');
+      assert(result.type === 'Event' && 'eventProperties' in result, 'Expected Event type');
+      expect(result.eventProperties).toHaveLength(1);
+      expect(result.eventProperties[0].name).toBe('detail');
     });
 
     it('should handle Function<> with generic types', () => {
       const result = rawTypeToTypeInformation('Function<String, Number, Boolean>', '', null);
-      expect(result.type).toBe('Function');
-      expect((result as DetailedFunctionType).parameters).toHaveLength(2);
-      expect((result as DetailedFunctionType).returns!.type).toBe('Boolean');
+      assert(result.type === 'Function' && 'parameters' in result, 'Expected Function type');
+      expect(result.parameters).toHaveLength(2);
+      expect(result.returns?.type).toBe('Boolean');
     });
 
     it('should handle Function<> without generic params falling back to subTypedKeys', () => {
@@ -1419,10 +1422,10 @@ Second level methods.`;
       const typedKeys = convertListToTypedKeys(list!);
 
       const result = rawTypeToTypeInformation('Function<Boolean>', '', typedKeys);
-      expect(result.type).toBe('Function');
-      expect((result as DetailedFunctionType).parameters).toHaveLength(1);
-      expect((result as DetailedFunctionType).parameters[0].name).toBe('arg1');
-      expect((result as DetailedFunctionType).returns!.type).toBe('Boolean');
+      assert(result.type === 'Function' && 'parameters' in result, 'Expected Function type');
+      expect(result.parameters).toHaveLength(1);
+      expect(result.parameters[0].name).toBe('arg1');
+      expect(result.returns?.type).toBe('Boolean');
     });
 
     it('should throw on generic type without inner types', () => {
@@ -1440,8 +1443,11 @@ Second level methods.`;
       const result = rawTypeToTypeInformation('Promise<Object>', '', typedKeys);
       expect(result.type).toBe('Promise');
       expect(result.innerTypes).toHaveLength(1);
-      expect(result.innerTypes![0].type).toBe('Object');
-      expect((result.innerTypes![0] as DetailedObjectType).properties).toHaveLength(1);
+      assert(
+        result.innerTypes?.[0].type === 'Object' && 'properties' in result.innerTypes[0],
+        'Expected Object type',
+      );
+      expect(result.innerTypes[0].properties).toHaveLength(1);
     });
   });
 

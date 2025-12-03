@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DocsParser } from '../src/DocsParser.js';
@@ -69,22 +69,20 @@ A \`string\` property that indicates the current application's name.
       expect(result.length).toBeGreaterThan(0);
 
       const appModule = result.find((m) => m.name === 'app');
-      expect(appModule).toBeDefined();
-      expect(appModule?.type).toBe('Module');
+      assert(appModule?.type === 'Module', 'Parsed module should be of type Module');
       // Just check that process information is present
-      expect((appModule as ModuleDocumentationContainer).process).toBeDefined();
-      expect((appModule as ModuleDocumentationContainer).process.main).toBe(true);
-      expect(appModule?.description).toContain('Control your application');
+      expect(appModule.process).toBeDefined();
+      expect(appModule.process.main).toBe(true);
+      expect(appModule.description).toContain('Control your application');
 
-      const module = appModule as ModuleDocumentationContainer;
-      expect(module.events).toHaveLength(1);
-      expect(module.events[0].name).toBe('ready');
+      expect(appModule.events).toHaveLength(1);
+      expect(appModule.events[0].name).toBe('ready');
 
-      expect(module.methods).toHaveLength(1);
-      expect(module.methods[0].name).toBe('quit');
+      expect(appModule.methods).toHaveLength(1);
+      expect(appModule.methods[0].name).toBe('quit');
 
-      expect(module.properties).toHaveLength(1);
-      expect(module.properties[0].name).toBe('name');
+      expect(appModule.properties).toHaveLength(1);
+      expect(appModule.properties[0].name).toBe('name');
     });
 
     it('should parse a class documentation', async () => {
@@ -134,22 +132,19 @@ Emitted when the window is closed.
       expect(result).toBeDefined();
       const browserWindowClass = result.find((c) => c.name === 'BrowserWindow');
 
-      expect(browserWindowClass).toBeDefined();
-      expect(browserWindowClass?.type).toBe('Class');
+      assert(browserWindowClass?.type === 'Class', 'Parsed class should be of type Class');
+      assert(browserWindowClass.constructorMethod, 'Constructor method should be defined');
+      expect(browserWindowClass.constructorMethod.parameters).toHaveLength(1);
 
-      const cls = browserWindowClass as ClassDocumentationContainer;
-      expect(cls.constructorMethod).toBeDefined();
-      expect(cls.constructorMethod!.parameters).toHaveLength(1);
+      expect(browserWindowClass.instanceMethods).toHaveLength(2);
+      expect(browserWindowClass.instanceMethods[0].name).toBe('close');
+      expect(browserWindowClass.instanceMethods[1].name).toBe('show');
 
-      expect(cls.instanceMethods).toHaveLength(2);
-      expect(cls.instanceMethods[0].name).toBe('close');
-      expect(cls.instanceMethods[1].name).toBe('show');
+      expect(browserWindowClass.instanceProperties).toHaveLength(1);
+      expect(browserWindowClass.instanceProperties[0].name).toBe('id');
 
-      expect(cls.instanceProperties).toHaveLength(1);
-      expect(cls.instanceProperties[0].name).toBe('id');
-
-      expect(cls.instanceEvents).toHaveLength(1);
-      expect(cls.instanceEvents[0].name).toBe('closed');
+      expect(browserWindowClass.instanceEvents).toHaveLength(1);
+      expect(browserWindowClass.instanceEvents[0].name).toBe('closed');
     });
 
     it('should parse a class with static methods and properties', async () => {
@@ -191,15 +186,13 @@ Pops up this menu.
       const result = await parser.parse();
 
       const menuClass = result.find((c) => c.name === 'Menu');
-      expect(menuClass).toBeDefined();
+      assert(menuClass?.type === 'Class', 'Parsed class should be of type Class');
 
-      const cls = menuClass as ClassDocumentationContainer;
-      expect(cls.staticMethods).toHaveLength(1);
-      expect(cls.staticMethods[0].name).toBe('buildFromTemplate');
-      expect(cls.staticMethods[0].returns).toBeDefined();
-
-      expect(cls.staticProperties).toHaveLength(1);
-      expect(cls.staticProperties[0].name).toBe('applicationMenu');
+      expect(menuClass.staticMethods).toHaveLength(1);
+      expect(menuClass.staticMethods[0].name).toBe('buildFromTemplate');
+      expect(menuClass.staticMethods[0].returns).toBeDefined();
+      expect(menuClass.staticProperties).toHaveLength(1);
+      expect(menuClass.staticProperties[0].name).toBe('applicationMenu');
     });
 
     it('should handle module with exported class in multi-package mode', async () => {
@@ -233,7 +226,7 @@ Try to close the window.
       // In multi-package mode, the module should exist and contain exported classes
       expect(result.length).toBeGreaterThan(0);
       const hasModuleWithClasses = result.some(
-        (item) => item.type === 'Module' && item.exportedClasses && item.exportedClasses.length > 0
+        (item) => item.type === 'Module' && item.exportedClasses && item.exportedClasses.length > 0,
       );
       expect(hasModuleWithClasses).toBe(true);
     });
@@ -273,19 +266,17 @@ Fired when the navigation is done.
       const result = await parser.parse();
 
       const webviewElement = result.find((e) => e.name === 'webviewTag');
-      expect(webviewElement).toBeDefined();
-      expect(webviewElement?.type).toBe('Element');
-      expect(webviewElement?.extends).toBe('HTMLElement');
+      assert(webviewElement?.type === 'Element', 'Parsed element should be of type Element');
+      expect(webviewElement.extends).toBe('HTMLElement');
 
-      const element = webviewElement as ElementDocumentationContainer;
-      expect(element.methods).toHaveLength(1);
-      expect(element.methods[0].name).toBe('loadURL');
+      expect(webviewElement.methods).toHaveLength(1);
+      expect(webviewElement.methods[0].name).toBe('loadURL');
 
-      expect(element.properties).toHaveLength(1);
-      expect(element.properties[0].name).toBe('src');
+      expect(webviewElement.properties).toHaveLength(1);
+      expect(webviewElement.properties[0].name).toBe('src');
 
-      expect(element.events).toHaveLength(1);
-      expect(element.events[0].name).toBe('did-finish-load');
+      expect(webviewElement.events).toHaveLength(1);
+      expect(webviewElement.events[0].name).toBe('did-finish-load');
     });
 
     it('should handle process tags correctly', async () => {
@@ -327,11 +318,13 @@ Expose API to renderer.
       const result = await parser.parse();
 
       const appModule = result.find((m) => m.name === 'app');
+      assert(appModule?.type === 'Module', 'Parsed module should be of type Module');
       const contextBridgeModule = result.find((m) => m.name === 'contextBridge');
+      assert(contextBridgeModule?.type === 'Module', 'Parsed module should be of type Module');
 
       // Just verify process information is parsed
-      expect((appModule as ModuleDocumentationContainer).process).toBeDefined();
-      expect((contextBridgeModule as ModuleDocumentationContainer).process).toBeDefined();
+      expect(appModule.process).toBeDefined();
+      expect(contextBridgeModule.process).toBeDefined();
     });
   });
 
@@ -354,16 +347,17 @@ Additional description after the property list.
       const result = await parser.parse();
 
       const rectangleStructure = result.find((s) => s.name === 'Rectangle');
-      expect(rectangleStructure).toBeDefined();
-      expect(rectangleStructure?.type).toBe('Structure');
+      assert(
+        rectangleStructure?.type === 'Structure',
+        'Parsed structure should be of type Structure',
+      );
 
-      const struct = rectangleStructure as StructureDocumentationContainer;
-      expect(struct.properties).toHaveLength(4);
-      expect(struct.properties[0].name).toBe('x');
-      expect(struct.properties[0].type).toBe('Integer');
-      expect(struct.properties[1].name).toBe('y');
-      expect(struct.properties[2].name).toBe('width');
-      expect(struct.properties[3].name).toBe('height');
+      expect(rectangleStructure.properties).toHaveLength(4);
+      expect(rectangleStructure.properties[0].name).toBe('x');
+      expect(rectangleStructure.properties[0].type).toBe('Integer');
+      expect(rectangleStructure.properties[1].name).toBe('y');
+      expect(rectangleStructure.properties[2].name).toBe('width');
+      expect(rectangleStructure.properties[3].name).toBe('height');
     });
 
     it('should parse a structure with optional properties', async () => {
@@ -380,7 +374,11 @@ Additional description after the property list.
       const parser = new DocsParser(tempDir, '1.0.0', [], [structurePath], 'single');
       const result = await parser.parse();
 
-      const optionsStructure = result.find((s) => s.name === 'Options') as StructureDocumentationContainer;
+      const optionsStructure = result.find((s) => s.name === 'Options');
+      assert(
+        optionsStructure?.type === 'Structure',
+        'Parsed structure should be of type Structure',
+      );
 
       expect(optionsStructure.properties[0].required).toBe(false);
       expect(optionsStructure.properties[1].required).toBe(false);

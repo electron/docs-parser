@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseDocs } from '../src/index.js';
@@ -9,7 +9,11 @@ import type {
   ElementDocumentationContainer,
 } from '../src/ParsedDocumentation.js';
 
-type ParsedItem = ModuleDocumentationContainer | ClassDocumentationContainer | StructureDocumentationContainer | ElementDocumentationContainer;
+type ParsedItem =
+  | ModuleDocumentationContainer
+  | ClassDocumentationContainer
+  | StructureDocumentationContainer
+  | ElementDocumentationContainer;
 
 describe('index (public API)', () => {
   let tempDir: string;
@@ -123,12 +127,10 @@ Test method.
 
       // In multi package mode, classes are nested in modules
       const testModule = result.find((item: ParsedItem) => item.name === 'TestModule');
-      expect(testModule).toBeDefined();
-      expect(testModule?.type).toBe('Module');
+      assert(testModule?.type === 'Module', 'Parsed module should be of type Module');
 
-      const module = testModule as ModuleDocumentationContainer;
-      expect(module.exportedClasses).toHaveLength(1);
-      expect(module.exportedClasses[0].name).toBe('TestClass');
+      expect(testModule.exportedClasses).toHaveLength(1);
+      expect(testModule.exportedClasses[0].name).toBe('TestClass');
     });
 
     it('should parse structures from structures directory', async () => {
@@ -283,9 +285,21 @@ Quit the app.
 
     it('should handle multiple API files', async () => {
       const files = [
-        { name: 'app.md', content: '# app\n\n_Main process_\n\nApp module.\n\n## Methods\n\n### `app.quit()`\n\nQuit.' },
-        { name: 'browser-window.md', content: '# BrowserWindow\n\n_Main process_\n\n## Methods\n\n### `BrowserWindow.getAllWindows()`\n\nGet all windows.\n\n## Class: BrowserWindow\n\n### Instance Methods\n\n#### `win.close()`\n\nClose.' },
-        { name: 'dialog.md', content: '# dialog\n\n_Main process_\n\nDialog module.\n\n## Methods\n\n### `dialog.showOpenDialog()`\n\nShow dialog.' },
+        {
+          name: 'app.md',
+          content:
+            '# app\n\n_Main process_\n\nApp module.\n\n## Methods\n\n### `app.quit()`\n\nQuit.',
+        },
+        {
+          name: 'browser-window.md',
+          content:
+            '# BrowserWindow\n\n_Main process_\n\n## Methods\n\n### `BrowserWindow.getAllWindows()`\n\nGet all windows.\n\n## Class: BrowserWindow\n\n### Instance Methods\n\n#### `win.close()`\n\nClose.',
+        },
+        {
+          name: 'dialog.md',
+          content:
+            '# dialog\n\n_Main process_\n\nDialog module.\n\n## Methods\n\n### `dialog.showOpenDialog()`\n\nShow dialog.',
+        },
       ];
 
       for (const file of files) {
@@ -315,7 +329,7 @@ Quit the app.
         const moduleName = file.replace('.md', '');
         await fs.promises.writeFile(
           filePath,
-          `# ${moduleName}\n\n_Main process_\n\nModule.\n\n## Methods\n\n### \`${moduleName}.test()\`\n\nTest.`
+          `# ${moduleName}\n\n_Main process_\n\nModule.\n\n## Methods\n\n### \`${moduleName}.test()\`\n\nTest.`,
         );
       }
 
@@ -370,7 +384,9 @@ Quit the app.
 
       // Should have parsed both api files and structures
       expect(result.length).toBeGreaterThanOrEqual(1);
-      expect(result.some((item: ParsedItem) => item.type === 'Module' || item.type === 'Structure')).toBe(true);
+      expect(
+        result.some((item: ParsedItem) => item.type === 'Module' || item.type === 'Structure'),
+      ).toBe(true);
     });
   });
 });
