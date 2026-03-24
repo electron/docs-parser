@@ -5,8 +5,12 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/test.yml
 
   release:
@@ -18,11 +22,11 @@ jobs:
       id-token: write # for publishing releases
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
       - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 20.x
           package-manager-cache: false
@@ -32,6 +36,6 @@ jobs:
         id: secret-service
         uses: electron/secret-service-action@3476425e8b30555aac15b1b7096938e254b0e155 # v1.0.0
       - name: Run semantic release
-        uses: electron/semantic-trusted-release@5eceb399ac8de8863205cf6e34109bce473ba566 # v1.0.1
+        uses: electron/semantic-trusted-release@03517840010ba30fe5264f4875f4cff066b658d1 # v1.1.0
         with:
           github-token: ${{ fromJSON(steps.secret-service.outputs.secrets).GITHUB_TOKEN }}
