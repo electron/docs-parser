@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npx yarn build",
+    "prepublishOnly": "yarn build",
     "prettier:check": "prettier --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test": "tsc --noEmit -p tests && vitest run",
