@@ -707,6 +707,11 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
       joinedContent += safelyJoinTokens(tokenToCheck.children, options);
       continue;
     }
+    if (tokenToCheck.type === 'image') {
+      const altText = tokenToCheck.content || 'No Description';
+      joinedContent += `[Image: ${altText}]`;
+      continue;
+    }
     expect(tokenToCheck.children).to.equal(
       null,
       'There should be no nested children in the joinable tokens',
@@ -800,12 +805,22 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         break;
       case 'paragraph_open':
       case 'blockquote_close':
-      case 'html_block':
         break;
       case 'html_inline':
         // Replace <br> elements with a newline
         if (tokenToCheck.content.match(/<br\s*\/?>/)) {
           joinedContent += '\n';
+        }
+      case 'html_block':
+        // Replace <img> and <image> tags with [Image: <alt text>]
+        const imgMatch = tokenToCheck.content.match(/<(?:img|image)\b[^>]*>/i);
+        if (imgMatch) {
+          const altMatch = imgMatch[0].match(/alt=["']([^"']*)["']/i);
+          const altText = altMatch && altMatch[1] ? altMatch[1] : 'No Description';
+          joinedContent += `[Image: ${altText}]`;
+          if (tokenToCheck.type === 'html_block') {
+            joinedContent += '\n\n';
+          }
         }
         break;
       case 'fence':
