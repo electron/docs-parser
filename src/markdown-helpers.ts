@@ -811,9 +811,10 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
         if (tokenToCheck.content.match(/<br\s*\/?>/)) {
           joinedContent += '\n';
         }
-      case 'html_block':
-        // Replace <img> and <image> tags with [Image: <alt text>]
-        const imgMatch = tokenToCheck.content.match(/<(?:img|image)\b[^>]*>/i);
+      // Intentional fallthrough to next case
+      case 'html_block': {
+        // Replace <img> tags with [Image: <alt text>]
+        const imgMatch = tokenToCheck.content.match(/<img\b[^>]*>/i);
         if (imgMatch) {
           const altMatch = imgMatch[0].match(/alt=["']([^"']*)["']/i);
           const altText = altMatch && altMatch[1] ? altMatch[1] : 'No Description';
@@ -823,6 +824,7 @@ export const safelyJoinTokens = (tokens: Token[], options: JoinTokenOptions = {}
           }
         }
         break;
+      }
       case 'fence':
         if (options.parseCodeFences) {
           joinedContent += `\`\`\`\n${tokenToCheck.content}\`\`\`\n\n`;

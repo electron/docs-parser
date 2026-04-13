@@ -134,18 +134,6 @@ def fn():
         expect(safelyJoinTokens(tokens)).toBe('Hello [Image: No Description] world');
       });
 
-      it('should handle raw <image> tags with alt text', () => {
-        const tokens = getTokens(
-          'Hello <image src="https://example.com/img.png" alt="my image"> world',
-        );
-        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: my image] world');
-      });
-
-      it('should handle raw <image> tags without alt text', () => {
-        const tokens = getTokens('Hello <image src="https://example.com/img.png"> world');
-        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: No Description] world');
-      });
-
       it('should handle standalone <img> block tags with alt text', () => {
         const tokens = getTokens(
           'Before:\n\n<img width="487" alt="Image Before Adjustment" src="../images/before.png"/>\n\nAfter:\n\n<img width="487" alt="Image After Adjustment" src="../images/after.png"/>',
