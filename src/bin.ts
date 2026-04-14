@@ -36,7 +36,7 @@ const {
   },
 });
 
-let safePackageMode = packageMode as 'single' | 'multi' | string;
+let safePackageMode = packageMode as string;
 
 if (safePackageMode !== 'single' && safePackageMode !== 'multi') {
   console.error(chalk.red('packageMode must be one of "single" and "multi"'));
@@ -79,7 +79,7 @@ runner.text = chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolv
 
 const start = Date.now();
 
-fs.promises.mkdir(resolvedOutDir, { recursive: true }).then(() =>
+void fs.promises.mkdir(resolvedOutDir, { recursive: true }).then(() =>
   parseDocs({
     useReadme: useReadme ? true : false,
     baseDirectory: resolvedDir,

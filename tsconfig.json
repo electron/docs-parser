@@ -1,15 +1,14 @@
 {
-	"extends": "@tsconfig/node22/tsconfig.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"declaration": true,
-		"sourceMap": true,
-		"rootDir": "src",
-		"strict": true,
-		"esModuleInterop": true,
-		"incremental": true
-	},
-	"include": [
-		"src"
-	]
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
 }
