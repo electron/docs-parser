@@ -237,7 +237,7 @@ export const getTopLevelGenericType = (typeString: string) => {
   )
     return null;
   const start = typeString.indexOf('<');
-  const end = typeString.length - [...typeString].reverse().indexOf('>') - 1;
+  const end = typeString.length - Array.from(typeString).reverse().indexOf('>') - 1;
   if (start === -1) return null;
   return {
     outerType: typeString.slice(0, start),
@@ -645,7 +645,7 @@ export const extractReturnType = (
   }
 
   const returnsWithNewLineMatch = description.match(
-    new RegExp(`${prefix} \`([^\`]+?)\`:?(\. |\.\n|\n|$)`),
+    new RegExp(`${prefix} \`([^\`]+?)\`:?(. |.\n|\n|$)`),
   );
   const returnsWithHyphenMatch = description.match(new RegExp(`${prefix} \`([^\`]+?)\` - `));
   const returnsWithContinousSentence = description.match(new RegExp(`${prefix} \`([^\`]+?)\` `));
@@ -1004,7 +1004,7 @@ export const findProcess = (tokens: Token[]): ProcessBlock => {
 
 export const slugifyHeading = (heading: string): string => {
   return heading
-    .replace(/[^A-Za-z0-9 \-]/g, '')
+    .replace(/[^A-Za-z0-9 -]/g, '')
     .replace(/ /g, '-')
     .toLowerCase();
 };

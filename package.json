@@ -16,8 +16,8 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "yarn build",
-    "prettier:check": "prettier --list-different \"src/**/*.{ts,tsx}\"",
-    "prettier:write": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "lint": "oxfmt --check . && oxlint",
+    "lint:fix": "oxfmt --write . && oxlint --fix",
     "test": "tsc --noEmit -p tests && vitest run",
     "prepare": "husky"
   },
@@ -37,8 +37,10 @@
     "@vitest/coverage-v8": "3.0.5",
     "husky": "^9.1.6",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.3.3",
-    "typescript": "^5.8.3",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.20.0",
+    "typescript": "^6.0.2",
     "vitest": "^4.0.18"
   },
   "dependencies": {
@@ -51,7 +53,13 @@
     "pretty-ms": "^9.1.0"
   },
   "lint-staged": {
-    "*.ts": "prettier --write"
+    "*.{js,ts}": [
+      "oxfmt --write",
+      "oxlint --fix"
+    ],
+    "*.json": [
+      "oxfmt --write"
+    ]
   },
   "repository": {
     "type": "git",

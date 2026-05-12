@@ -28,7 +28,7 @@ type GuessedParam = {
 
 export const guessParametersFromSignature = (signature: string) => {
   expect(signature).to.match(
-    /^\(([a-zA-Z,\[\] ]+|(\.\.\.[^\.])|([a-zA-Z][0-9]))+\)$/g,
+    /^\(([a-zA-Z,[\] ]+|(\.\.\.[^.])|([a-zA-Z][0-9]))+\)$/g,
     'signature should be a bracket wrapped group of parameters',
   );
   const justParams = signature.slice(1, signature.length - 1);

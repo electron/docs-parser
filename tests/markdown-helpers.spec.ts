@@ -27,14 +27,7 @@ import {
   getTopLevelOrderedTypes,
   convertListToTypedKeys,
 } from '../src/markdown-helpers.js';
-import {
-  DocumentationTag,
-  type DetailedFunctionType,
-  type DetailedObjectType,
-  type DetailedStringType,
-  type DetailedEventType,
-  type DetailedEventReferenceType,
-} from '../src/ParsedDocumentation.js';
+import { DocumentationTag } from '../src/ParsedDocumentation.js';
 
 const getTokens = (md: string) => {
   const markdown = new MarkdownIt({ html: true });

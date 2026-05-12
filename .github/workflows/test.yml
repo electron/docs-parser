@@ -35,8 +35,8 @@ jobs:
           cache: 'yarn'
       - name: Install
         run: yarn install --immutable
-      - name: Prettier
-        run: yarn prettier:check
+      - name: Lint
+        run: yarn lint
       - name: Build
         run: yarn build
       - name: Test
