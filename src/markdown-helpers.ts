@@ -320,10 +320,14 @@ export const rawTypeToTypeInformation = (
             }))
           : [],
     };
-  } else if (typeString === 'String' || typeString === 'string') {
+  } else if (typeString === 'Boolean' || typeString === 'Number' || typeString === 'String') {
+    throw new Error(
+      `Use lowercase "${typeString.toLowerCase()}" instead of "${typeString}" for a primitive type`,
+    );
+  } else if (typeString === 'string') {
     return {
       collection,
-      type: 'String',
+      type: 'string',
       possibleValues:
         subTypedKeys && !subTypedKeys.consumed
           ? consumeTypedKeysList(subTypedKeys).map<PossibleStringValue>((typedKey) => ({
@@ -895,7 +899,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
   for (const item of list.items) {
     // If the current list would fail checks, but it has a nested list, assume that the nested list is the content we want
     // E.g.
-    // * `foo` - String
+    // * `foo` - string
     //   * On windows these keys
     //      * `option1`
     //      * `option2`
@@ -930,7 +934,7 @@ const convertNestedListToTypedKeys = (list: List): TypedKey[] => {
     const typeAndDescriptionTokens = targetToken.children!.slice(1);
     const joinedContent = safelyJoinTokens(typeAndDescriptionTokens);
 
-    let rawType = 'String';
+    let rawType = 'string';
     if (typeAndDescriptionTokens.length !== 0) {
       rawType = joinedContent.split('-')[0];
     }
