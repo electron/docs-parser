@@ -352,6 +352,10 @@ Process: Main
  _This class is not exported from the \`'electron'\` module. It is only available as a return value of other methods in the Electron API._"
 `;
 
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-image 1`] = `"This paragraph has an image [Image: screenshot] embedded in it."`;
+
+exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-image-no-alt 1`] = `"This paragraph has an image with no alt text [Image: No Description] in it."`;
+
 exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-inline-code 1`] = `"This is a \`inline code\` block that is \`code\` tagged."`;
 
 exports[`markdown-helpers > safelyJoinTokens > snapshots > should be correct for paragraph-with-links 1`] = `"This paragraph has a bunch of stuff.  Also some links Foo, these links should be stripped."`;
