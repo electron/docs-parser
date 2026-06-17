@@ -110,6 +110,46 @@ def fn():
         expect(safelyJoinTokens(tokens, { parseCodeFences: true })).toMatchSnapshot();
       });
     });
+
+    describe('images', () => {
+      it('should transform markdown image links with alt text', () => {
+        const tokens = getTokens('Hello ![screenshot](https://example.com/screenshot.png) world');
+        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: screenshot] world');
+      });
+
+      it('should use "No Description" for markdown images without alt text', () => {
+        const tokens = getTokens('Hello ![](https://example.com/screenshot.png) world');
+        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: No Description] world');
+      });
+
+      it('should handle raw <img> tags with alt text', () => {
+        const tokens = getTokens(
+          'Hello <img src="https://example.com/img.png" alt="my image"> world',
+        );
+        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: my image] world');
+      });
+
+      it('should handle raw <img> tags without alt text', () => {
+        const tokens = getTokens('Hello <img src="https://example.com/img.png"> world');
+        expect(safelyJoinTokens(tokens)).toBe('Hello [Image: No Description] world');
+      });
+
+      it('should handle standalone <img> block tags with alt text', () => {
+        const tokens = getTokens(
+          'Before:\n\n<img width="487" alt="Image Before Adjustment" src="../images/before.png"/>\n\nAfter:\n\n<img width="487" alt="Image After Adjustment" src="../images/after.png"/>',
+        );
+        expect(safelyJoinTokens(tokens)).toBe(
+          'Before:\n\n[Image: Image Before Adjustment]\n\nAfter:\n\n[Image: Image After Adjustment]',
+        );
+      });
+
+      it('should handle standalone <img> block tags without alt text', () => {
+        const tokens = getTokens(
+          'Text\n\n<img width="487" src="../images/before.png"/>\n\nMore text',
+        );
+        expect(safelyJoinTokens(tokens)).toBe('Text\n\n[Image: No Description]\n\nMore text');
+      });
+    });
   });
 
   describe('extractStringEnum()', () => {
