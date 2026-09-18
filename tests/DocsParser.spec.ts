@@ -2,12 +2,6 @@ import { afterEach, assert, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DocsParser } from '../src/DocsParser.js';
-import type {
-  ModuleDocumentationContainer,
-  ClassDocumentationContainer,
-  ElementDocumentationContainer,
-  StructureDocumentationContainer,
-} from '../src/ParsedDocumentation.js';
 
 describe('DocsParser', () => {
   let tempDir: string;
