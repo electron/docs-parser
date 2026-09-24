@@ -498,6 +498,25 @@ def fn():
       ).toMatchSnapshot();
     });
 
+    it('should keep a conditional type with a parenthesized union as a single inner type', () => {
+      expect(
+        rawTypeToTypeInformation(
+          "Promise<string extends T ? (A | B) : T extends 'a' ? A : B>",
+          '',
+          null,
+        ),
+      ).toEqual({
+        collection: false,
+        type: 'Promise',
+        innerTypes: [
+          {
+            collection: false,
+            type: "string extends T ? (A | B) : T extends 'a' ? A : B",
+          },
+        ],
+      });
+    });
+
     it('should allow commas in object types', () => {
       expect(
         rawTypeToTypeInformation('Function<{a: string, b: string}>', '', null),
@@ -1125,6 +1144,16 @@ Second level methods.`;
       const result = safelySeparateTypeStringOn('  string  |  number  ', '|');
       expect(result).toEqual(['string', 'number']);
     });
+
+    it('should not split inside parentheses', () => {
+      const result = safelySeparateTypeStringOn('(A | B)[] | C', '|');
+      expect(result).toEqual(['(A | B)[]', 'C']);
+    });
+
+    it('should not split commas inside parentheses', () => {
+      const result = safelySeparateTypeStringOn('Function<(A, B)>, C', ',');
+      expect(result).toEqual(['Function<(A, B)>', 'C']);
+    });
   });
 
   describe('getTopLevelMultiTypes', () => {
@@ -1141,6 +1170,16 @@ Second level methods.`;
     it('should handle single type', () => {
       const result = getTopLevelMultiTypes('string');
       expect(result).toEqual(['string']);
+    });
+
+    it('should not split a union wrapped in parentheses inside a conditional type', () => {
+      const result = getTopLevelMultiTypes('string extends T ? (A | B) : C');
+      expect(result).toEqual(['string extends T ? (A | B) : C']);
+    });
+
+    it('should still split top-level unions next to parenthesized types', () => {
+      const result = getTopLevelMultiTypes('(A | B) | C');
+      expect(result).toEqual(['(A | B)', 'C']);
     });
   });
 
