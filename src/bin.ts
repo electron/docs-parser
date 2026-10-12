@@ -3,8 +3,8 @@
 import chalk from 'chalk';
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
-import ora from 'ora';
 import * as path from 'node:path';
+import { Spinner } from 'picospinner';
 import pretty from 'pretty-ms';
 
 import { parseDocs } from './index.js';
@@ -50,7 +50,7 @@ if (help) {
   process.exit(0);
 }
 
-const runner = ora(chalk.yellow('Checking argv')).start();
+const runner = startSpinner(chalk.yellow('Checking argv'));
 
 if (typeof dir !== 'string') {
   runner.fail(chalk.red('Missing required --dir argument.  "--dir ../electron"'));
@@ -75,7 +75,7 @@ const resolvedOutDir =
       : path.resolve(process.cwd(), outDir)
     : process.cwd();
 
-runner.text = chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolvedOutDir}"`)}`);
+runner.setText(chalk.cyan(`Generating API in directory: ${chalk.yellow(`"${resolvedOutDir}"`)}`));
 
 const start = Date.now();
 
@@ -105,3 +105,43 @@ void fs.promises.mkdir(resolvedOutDir, { recursive: true }).then(() =>
       process.exit(1);
     }),
 );
+
+function startSpinner(text: string) {
+  const symbols = { succeed: chalk.green('✔'), fail: chalk.red('✖') };
+  // picospinner animates unconditionally, which would flood logs when stderr is
+  // not a terminal (e.g. in CI), so only animate when interactive and otherwise
+  // just print the start and final lines.
+  const interactive = process.stderr.isTTY && process.env.TERM !== 'dumb' && !('CI' in process.env);
+
+  if (interactive) {
+    const spinner = new Spinner(
+      { text, stream: process.stderr },
+      {
+        colors: false,
+        frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'].map((frame) =>
+          chalk.cyan(frame),
+        ),
+        symbols,
+      },
+    );
+    spinner.start(80);
+    return {
+      setText: (newText: string) => spinner.setText(newText),
+      succeed: (newText: string) => spinner.succeed(newText),
+      fail: (newText?: string) => spinner.fail(newText),
+    };
+  }
+
+  process.stderr.write(`- ${text}\n`);
+  return {
+    setText: (newText: string) => {
+      text = newText;
+    },
+    succeed: (newText: string) => {
+      process.stderr.write(`${symbols.succeed} ${newText}\n`);
+    },
+    fail: (newText = text) => {
+      process.stderr.write(`${symbols.fail} ${newText}\n`);
+    },
+  };
+}
