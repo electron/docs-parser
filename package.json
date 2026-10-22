@@ -34,7 +34,7 @@
     "@types/lodash.camelcase": "^4.3.9",
     "@types/node": "^22.10.7",
     "@types/pretty-ms": "^5.0.1",
-    "@vitest/coverage-v8": "5.0.1",
+    "@vitest/coverage-v8": "5.0.5",
     "husky": "^9.1.6",
     "lint-staged": "^17.4.1",
     "oxfmt": "^0.71.0",
@@ -42,7 +42,7 @@
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^6.0.2",
     "vite": "^8.0.16",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "@types/markdown-it": "^14.1.2",
