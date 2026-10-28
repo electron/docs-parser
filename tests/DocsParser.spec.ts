@@ -79,6 +79,43 @@ A \`string\` property that indicates the current application's name.
       expect(appModule.properties[0].name).toBe('name');
     });
 
+    it('should include a code fence at the end of a module description', async () => {
+      const moduleContent = `# app
+
+> Control your application's event lifecycle.
+
+Process: [Main](../glossary.md#main-process)
+
+The following example shows how to quit the application when the last window
+is closed:
+
+\`\`\`js
+const { app } = require('electron')
+app.on('window-all-closed', () => {
+  app.quit()
+})
+\`\`\`
+
+## Methods
+
+### \`app.quit()\`
+
+Try to close all windows.
+`;
+
+      const modulePath = path.join(tempDir, 'docs', 'api', 'app.md');
+      await fs.promises.writeFile(modulePath, moduleContent);
+
+      const parser = new DocsParser(tempDir, '1.0.0', [modulePath], [], 'single');
+      const result = await parser.parse();
+
+      const appModule = result.find((m) => m.name === 'app');
+      assert(appModule?.type === 'Module', 'Parsed module should be of type Module');
+      expect(appModule.description).toContain('is closed:');
+      expect(appModule.description).toContain("const { app } = require('electron')");
+      expect(appModule.description).not.toContain('Try to close all windows');
+    });
+
     it('should parse a class documentation', async () => {
       const classContent = `# BrowserWindow
 
@@ -352,6 +389,34 @@ Additional description after the property list.
       expect(rectangleStructure.properties[1].name).toBe('y');
       expect(rectangleStructure.properties[2].name).toBe('width');
       expect(rectangleStructure.properties[3].name).toBe('height');
+    });
+
+    it('should keep the description when a heading follows the property list', async () => {
+      const structureContent = `# PrinterInfo Object
+
+* \`name\` string - The name of the printer as understood by the OS.
+* \`status\` number - The current status of the printer.
+
+The number represented by \`status\` means different things on different platforms.
+
+## Example
+
+Below is an example of some of the additional options that may be set.
+`;
+
+      const structurePath = path.join(tempDir, 'docs', 'api', 'structures', 'printer-info.md');
+      await fs.promises.writeFile(structurePath, structureContent);
+
+      const parser = new DocsParser(tempDir, '1.0.0', [], [structurePath], 'single');
+      const result = await parser.parse();
+
+      const printerInfo = result.find((s) => s.name === 'PrinterInfo');
+      assert(printerInfo?.type === 'Structure', 'Parsed structure should be of type Structure');
+
+      expect(printerInfo.properties).toHaveLength(2);
+      expect(printerInfo.description).toBe(
+        'The number represented by `status` means different things on different platforms.',
+      );
     });
 
     it('should parse a structure with optional properties', async () => {

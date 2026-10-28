@@ -862,6 +862,36 @@ After nested list.
       const joined = safelyJoinTokens(content);
       expect(joined).toContain('After nested list');
     });
+
+    it('should return all content between the list and the next heading', () => {
+      const md = `# Heading
+
+* Item 1
+* Item 2
+
+First paragraph after the list.
+
+Second paragraph after the list.
+
+\`\`\`js
+const code = 'fence'
+\`\`\`
+
+## Next Heading
+
+Content that should not be included.
+`;
+      const tokens = getTokens(md);
+      const content = findContentAfterList(tokens);
+      expect(content[0].type).toBe('paragraph_open');
+      expect(content[content.length - 1].type).toBe('fence');
+      const joined = safelyJoinTokens(content, { parseCodeFences: true });
+      expect(joined).toContain('First paragraph after the list.');
+      expect(joined).toContain('Second paragraph after the list.');
+      expect(joined).toContain("const code = 'fence'");
+      expect(joined).not.toContain('Next Heading');
+      expect(joined).not.toContain('should not be included');
+    });
   });
 
   describe('findContentAfterHeadingClose', () => {
@@ -885,8 +915,30 @@ Content for heading one.
 Content for heading two.`;
       const tokens = getTokens(md);
       const content = findContentAfterHeadingClose(tokens);
-      // The function returns tokens, check that we got some
-      expect(content.length).toBeGreaterThan(0);
+      expect(content[0].type).toBe('paragraph_open');
+      expect(content[content.length - 1].type).toBe('paragraph_close');
+      const joined = safelyJoinTokens(content);
+      expect(joined).toBe('Content for heading one.');
+    });
+
+    it('should not drop a trailing code fence before the next heading', () => {
+      const md = `# Heading One
+
+Content for heading one.
+
+\`\`\`js
+const code = 'fence'
+\`\`\`
+
+## Heading Two
+
+Content for heading two.`;
+      const tokens = getTokens(md);
+      const content = findContentAfterHeadingClose(tokens);
+      expect(content[content.length - 1].type).toBe('fence');
+      const joined = safelyJoinTokens(content, { parseCodeFences: true });
+      expect(joined).toContain("const code = 'fence'");
+      expect(joined).not.toContain('Content for heading two.');
     });
   });
 

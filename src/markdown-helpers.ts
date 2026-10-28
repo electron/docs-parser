@@ -91,16 +91,18 @@ export const findContentAfterList = (tokens: Token[], returnAllOnNoList = false)
     if (!returnAllOnNoList) return [];
     start = tokens.findIndex((t) => t.type === 'heading_close');
   }
+  // `end` is relative to `start`, so offset it back into `tokens` coordinates
   const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
-  return tokens.slice(start + 1, end);
+  return tokens.slice(start + 1, start + end);
 };
 
 export const findContentAfterHeadingClose = (tokens: Token[]) => {
   const start = tokens.findIndex((t) => t.type === 'heading_close');
+  // `end` is relative to `start`, so offset it back into `tokens` coordinates
   const end = tokens.slice(start).findIndex((t) => t.type === 'heading_open');
   if (end === -1) return tokens.slice(start + 1);
-  return tokens.slice(start + 1, end);
+  return tokens.slice(start + 1, start + end);
 };
 
 export type HeadingContent = {
