@@ -73,8 +73,8 @@ __metadata:
     vitest: "npm:^5.0.5"
     yocto-spinner: "npm:^1.2.2"
   bin:
-    electron-docs-linter: ./dist/bin.js
-    electron-docs-parser: ./dist/bin.js
+    electron-docs-linter: dist/bin.js
+    electron-docs-parser: dist/bin.js
   languageName: unknown
   linkType: soft
 
