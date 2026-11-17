@@ -256,7 +256,7 @@ exports[`markdown-helpers > rawTypeToTypeInformation() > should map a nested com
 exports[`markdown-helpers > rawTypeToTypeInformation() > should map a primitive types correctly 1`] = `
 {
   "collection": false,
-  "type": "Boolean",
+  "type": "boolean",
 }
 `;
 
